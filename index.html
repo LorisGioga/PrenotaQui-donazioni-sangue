@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gruppo FIDAS adsp - Prenotazioni</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
@@ -15,13 +15,8 @@
             <img src="logofidas.png" alt="Logo FIDAS" class="header-logo">
             <span class="header-text">Gruppo FIDAS adsp di San Giusto Canavese</span>
         </div>
-        </header>
-    
-        </div>
+    </header>
 
-    
-
-    
     <div id="app" class="container" :class="view"> 
         
         <div v-if="view==='landing'">
@@ -66,8 +61,6 @@
             <p>&nbsp;&nbsp;&nbsp;</p>
             <button @click="view='landing'">Indietro</button>
             <button @click="view==='register'? register(): login()">Avanti</button>
-            
-            
         </div>
 
         <div v-else-if="view==='pageSelect'">
@@ -92,7 +85,6 @@
             <button @click="enterPage()">Avanti</button>
             <h3></h3>
             <p></p>
-            
 
             <div v-if="isAdmin" class="admin-settings">
                 
@@ -180,7 +172,6 @@
             <p>&nbsp;&nbsp;&nbsp;</p>
              
             <div v-if="isAdmin" class="admin-actions">
-                
                 <button class="reset" @click="resetAll()">Resetta Tutto</button>
                 <button @click="exportExcel()">Scarica Excel</button>
                 <button @click="importExcel()">Carica Excel</button>
@@ -207,48 +198,46 @@
             </table>
         </div>
     
-    <!-- MODALE PERSONALIZZATO -->
-<div v-if="modal.show" class="modal-overlay" @click.self="modalCancel">
-  <div class="modal-box">
-    <div class="modal-header">
-      <span class="modal-icon" :class="modal.type">
-        <span v-if="modal.type === 'alert'">ℹ️</span>
-        <span v-else-if="modal.type === 'confirm'">⚠️</span>
-        <span v-else-if="modal.type === 'prompt'">✏️</span>
-      </span>
-      <h3 class="modal-title">{{ modal.title }}</h3>
+        <!-- MODALE PERSONALIZZATO -->
+        <div v-if="modal.show" class="modal-overlay" @click.self="modalCancel">
+            <div class="modal-box">
+                <div class="modal-header">
+                    <span class="modal-icon" :class="modal.type">
+                        <span v-if="modal.type === 'alert'">ℹ️</span>
+                        <span v-else-if="modal.type === 'confirm'">⚠️</span>
+                        <span v-else-if="modal.type === 'prompt'">✏️</span>
+                    </span>
+                    <h3 class="modal-title">{{ modal.title }}</h3>
+                </div>
+                
+                <p class="modal-message">{{ modal.message }}</p>
+                
+                <input 
+                    v-if="modal.type === 'prompt'" 
+                    v-model="modal.input" 
+                    type="text" 
+                    class="modal-input"
+                    @keyup.enter="modalConfirm"
+                    placeholder="Inserisci qui...">
+                
+                <div class="modal-buttons">
+                    <button 
+                        v-if="modal.type !== 'alert'" 
+                        @click="modalCancel" 
+                        class="modal-btn modal-btn-secondary">
+                        Annulla
+                    </button>
+                    <button 
+                        @click="modalConfirm" 
+                        class="modal-btn modal-btn-primary">
+                        {{ modal.type === 'alert' ? 'OK' : 'Conferma' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
-    
-    <p class="modal-message">{{ modal.message }}</p>
-    
-    <input 
-      v-if="modal.type === 'prompt'" 
-      v-model="modal.input" 
-      type="text" 
-      class="modal-input"
-      @keyup.enter="modalConfirm"
-      placeholder="Inserisci qui...">
-    
-    <div class="modal-buttons">
-      <button 
-        v-if="modal.type !== 'alert'" 
-        @click="modalCancel" 
-        class="modal-btn modal-btn-secondary">
-        Annulla
-      </button>
-      <button 
-        @click="modalConfirm" 
-        class="modal-btn modal-btn-primary">
-        {{ modal.type === 'alert' ? 'OK' : 'Conferma' }}
-      </button>
-    </div>
-  </div>
-</div>
-    </div>
-    <script src="app.js"></script>
+
+    <script type="module" src="app.js"></script>
 </body>
-
 </html>
-
-
-
