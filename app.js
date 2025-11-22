@@ -1,15 +1,6 @@
 // programma fire base: FIDAS SAN GIUSTO CAN 2
-//import { initializeApp } from 'hhttps://www.gstatic.com/firebasejs/12.5.0/firebase-app.js';
-//import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js';
-//import { getDatabase, ref, push, onValue, set, get, child, remove } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js';
-
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js';
-
-// Auth functions from firebase-auth.js
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js';
-
-// Database functions from firebase-database.js
-// HO AGGIUNTO L'IMPORTAZIONE DI 'update' QUI
 import { getDatabase, ref, push, onValue, set, get, child, remove, update } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js';
 
 const { createApp, reactive, ref: vueRef } = Vue;
@@ -31,7 +22,7 @@ const db = getDatabase(app);
 createApp({
   setup() {
     const view = vueRef('landing');
-    const seatsPerSlot = vueRef(6); // ORA È MODIFICABILE
+    const seatsPerSlot = vueRef(6);
     const user = reactive({ lastName:'', firstName:'', matricola:'', email:'', password:'', pageChoice:'page1' });
     const booking = reactive({ matricola:'', name:'', slot: null });
     const slots = [
@@ -43,10 +34,9 @@ createApp({
     ];
     const bookingsBySlot = reactive({});
     const isAdmin = vueRef(false);
-    // Voci dinamiche per le pagine
     const pageNames = reactive({}); 
     const blocks = reactive({});
-    const newPageName = vueRef(''); // Variabile per la nuova pagina admin
+    const newPageName = vueRef('');
     
     const texts = reactive({ 
       landing:'Se sei un nuovo donatore o non fai parte di questo gruppo, contatta il N. 333.78.36.256 o uno del Direttivo, ci penseremo noi ad inserirti nella lista.', 
@@ -57,12 +47,74 @@ createApp({
     const adminPass = vueRef('');
 
     // ===================================
-    // Inizializzazioni DB (AGGIORNATE per pagine dinamiche)
+    // SISTEMA MODALE PERSONALIZZATI
+    // ===================================
+    const modal = reactive({
+      show: false,
+      type: 'alert', // 'alert', 'confirm', 'prompt'
+      title: '',
+      message: '',
+      input: '',
+      resolve: null
+    });
+
+    function showAlert(message, title = 'Notifica') {
+      return new Promise(resolve => {
+        modal.type = 'alert';
+        modal.title = title;
+        modal.message = message;
+        modal.show = true;
+        modal.resolve = resolve;
+      });
+    }
+
+    function showConfirm(message, title = 'Conferma') {
+      return new Promise(resolve => {
+        modal.type = 'confirm';
+        modal.title = title;
+        modal.message = message;
+        modal.show = true;
+        modal.resolve = resolve;
+      });
+    }
+
+    function showPrompt(message, title = 'Inserisci') {
+      return new Promise(resolve => {
+        modal.type = 'prompt';
+        modal.title = title;
+        modal.message = message;
+        modal.input = '';
+        modal.show = true;
+        modal.resolve = resolve;
+      });
+    }
+
+    function modalConfirm() {
+      if (modal.resolve) {
+        if (modal.type === 'prompt') {
+          modal.resolve(modal.input);
+        } else {
+          modal.resolve(true);
+        }
+      }
+      modal.show = false;
+      modal.input = '';
+    }
+
+    function modalCancel() {
+      if (modal.resolve) {
+        modal.resolve(modal.type === 'prompt' ? null : false);
+      }
+      modal.show = false;
+      modal.input = '';
+    }
+
+    // ===================================
+    // INIZIALIZZAZIONI DB
     // ===================================
     get(ref(db, 'adminPass')).then(s => { if (!s.exists()) set(ref(db, 'adminPass'), 'admin123'); });
     get(ref(db, 'h4Texts')).then(s => { if (!s.exists()) set(ref(db, 'h4Texts'), texts); });
     
-    // INIZIALIZZAZIONE DINAMICA PAGINE: Assicura che ci sia almeno una pagina
     get(ref(db, 'pageNames')).then(s => { 
       if (!s.exists() || Object.keys(s.val()).length === 0) {
         set(ref(db, 'pageNames'), { page1: 'Pagina 1' });
@@ -76,7 +128,6 @@ createApp({
       }
     });
 
-    // INIZIALIZZA IL NUMERO DI POSTI PER FASCIA
     get(ref(db, 'seatsPerSlot')).then(s => { 
       if (!s.exists()) {
         set(ref(db, 'seatsPerSlot'), 6);
@@ -85,14 +136,12 @@ createApp({
       }
     });
 
-    // Listener per lo stato di autenticazione
     onAuthStateChanged(auth, u => {
       if (u) {
         get(child(ref(db), `users/${u.uid}`))
           .then(snap => {
             if (snap.exists()) {
               Object.assign(user, snap.val());
-              // Assicura che l'utente abbia una pagina scelta valida
               if (!Object.keys(pageNames).includes(user.pageChoice)) {
                 user.pageChoice = Object.keys(pageNames)[0] || 'landing';
               }
@@ -117,9 +166,6 @@ createApp({
       }
     });
 
-    // ===================================
-    // LISTENERS
-    // ===================================
     onValue(ref(db, 'pageNames'), snap => snap.val() && Object.assign(pageNames, snap.val()));
     onValue(ref(db, 'h4Texts'), snap => snap.val() && Object.assign(texts, snap.val()));
     onValue(ref(db, 'blocks'), snap => snap.val() && Object.assign(blocks, snap.val()));
@@ -129,17 +175,13 @@ createApp({
         seatsPerSlot.value = s.val();
       }
     });
-    // ===================================
 
     const remaining = slot => seatsPerSlot.value - (bookingsBySlot[slot.id]?.length || 0);
     
-    // FUNZIONE MASK MIGLIORATA: mostra nome completo per l'utente loggato
     const mask = (name, matricola) => {
-      // Se l'utente loggato ha la stessa matricola, mostra il nome completo
       if (user.matricola && matricola === user.matricola) {
         return name;
       }
-      // Altrimenti maschera il nome
       return name.split(' ').map(p => p.slice(0,2)+'..').join(' ');
     };
 
@@ -151,66 +193,52 @@ createApp({
       }
     }
 
-    function register() {
+    async function register() {
       if (!validateAuthFields()) return;
 
-      createUserWithEmailAndPassword(auth, user.email, user.password)
-        .then(cred => {
-          set(ref(db, `users/${cred.user.uid}`), {
-            lastName: user.lastName,
-            firstName: user.firstName,
-            matricola: user.matricola,
-            email: user.email
-          })
-          .then(() => {
-            alert('Registrazione effettuata con successo! Ora puoi procedere.');
-            view.value = 'pageSelect';
-            loadBookings();
-          })
-          .catch(dbError => {
-            console.error("Errore salvataggio dati utente dopo registrazione:", dbError);
-            alert(`Errore nel salvare i dati utente: ${dbError.message}. Riprova o contatta l'amministrazione.`);
-          });
-        })
-        .catch(authError => {
-          console.error("Errore registrazione:", authError);
-          alert(`Errore durante la registrazione: ${authError.message}`);
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, user.email, user.password);
+        await set(ref(db, `users/${cred.user.uid}`), {
+          lastName: user.lastName,
+          firstName: user.firstName,
+          matricola: user.matricola,
+          email: user.email
         });
+        await showAlert('Registrazione effettuata con successo! Ora puoi procedere.', 'Successo');
+        view.value = 'pageSelect';
+        loadBookings();
+      } catch (error) {
+        console.error("Errore registrazione:", error);
+        await showAlert(`Errore durante la registrazione: ${error.message}`, 'Errore');
+      }
     }
 
-    function login() {
+    async function login() {
       if (!validateAuthFields()) return;
 
-      signInWithEmailAndPassword(auth, user.email, user.password)
-        .then(cred => {
-          get(child(ref(db), `users/${cred.user.uid}`))
-          .then(snap => {
-            if (snap.exists()) {
-              Object.assign(user, snap.val());
-              alert('Accesso effettuato con successo!');
-              view.value = 'pageSelect';
-              loadBookings();
-            } else {
-              console.warn("Utente autenticato (Auth) ma dati profilo mancanti nel DB:", cred.user.uid);
-              alert('Accesso effettuato, ma dati profilo non trovati nel database. Contatta l\'amministrazione.');
-              signOut(auth);
-            }
-          })
-          .catch(dbError => {
-            console.error("Errore caricamento dati utente dopo login:", dbError);
-            alert(`Errore nel caricare i dati utente dal database: ${dbError.message}`);
-            signOut(auth);
-          });
-        })
-        .catch(authError => {
-          console.error("Errore login:", authError);
-          alert(`Errore durante l\'accesso: ${authError.message}`);
-        });
+      try {
+        const cred = await signInWithEmailAndPassword(auth, user.email, user.password);
+        const snap = await get(child(ref(db), `users/${cred.user.uid}`));
+        
+        if (snap.exists()) {
+          Object.assign(user, snap.val());
+          await showAlert('Accesso effettuato con successo!', 'Successo');
+          view.value = 'pageSelect';
+          loadBookings();
+        } else {
+          console.warn("Utente autenticato (Auth) ma dati profilo mancanti nel DB:", cred.user.uid);
+          await showAlert('Accesso effettuato, ma dati profilo non trovati nel database. Contatta l\'amministrazione.', 'Attenzione');
+          signOut(auth);
+        }
+      } catch (error) {
+        console.error("Errore login:", error);
+        await showAlert(`Errore durante l\'accesso: ${error.message}`, 'Errore');
+      }
     }
 
-    function validateAuthFields() {
+    async function validateAuthFields() {
       if (!user.lastName || !user.firstName || !user.matricola || !user.email || !user.password) {
-        alert('Per favore, compila tutti i campi (Cognome, Nome, Matricola, E-mail, Password) per procedere.');
+        await showAlert('Per favore, compila tutti i campi (Cognome, Nome, Matricola, E-mail, Password) per procedere.', 'Campi mancanti');
         return false;
       }
       return true;
@@ -221,23 +249,22 @@ createApp({
         console.log("Utente disconnesso");
       }).catch((error) => {
         console.error("Errore durante la disconnessione:", error);
-        alert("Si è verificato un errore durante la disconnessione.");
+        showAlert("Si è verificato un errore durante la disconnessione.", 'Errore');
       });
     }
 
-    function enterPage() {
+    async function enterPage() {
       if (!auth.currentUser) {
-        alert("Devi accedere per prenotare.");
+        await showAlert("Devi accedere per prenotare.", 'Accesso richiesto');
         view.value = 'auth';
         return;
       }
-      // Verifica se la scelta pagina è valida
       if (!Object.keys(pageNames).includes(user.pageChoice)) {
-        alert("Selezione pagina non valida. Scegli una pagina disponibile.");
+        await showAlert("Selezione pagina non valida. Scegli una pagina disponibile.", 'Errore');
         return;
       }
       if (blocks[user.pageChoice]) {
-        alert('Al momento la pagina di prenotazione è bloccata. Sarai avvisato quando sarà disponibile.');
+        await showAlert('Al momento la pagina di prenotazione è bloccata. Sarai avvisato quando sarà disponibile.', 'Pagina bloccata');
         return;
       }
       view.value = user.pageChoice; 
@@ -254,46 +281,47 @@ createApp({
 
     async function book() {
       if (!auth.currentUser) {
-        alert("Devi accedere per prenotare.");
+        await showAlert("Devi accedere per prenotare.", 'Accesso richiesto');
         view.value = 'auth';
         return;
       }
-      if (booking.slot==null) return alert('Seleziona fascia');
+      if (booking.slot==null) {
+        await showAlert('Seleziona fascia', 'Attenzione');
+        return;
+      }
 
       const matricolaToCheck = isAdmin.value ? booking.matricola : user.matricola;
-      if (!matricolaToCheck) return alert('Matricola mancante');
+      if (!matricolaToCheck) {
+        await showAlert('Matricola mancante', 'Errore');
+        return;
+      }
 
       try {
-        // Itera su TUTTE le pagine per verificare se la matricola è già prenotata
         const pageKeys = Object.keys(pageNames);
         for (let p of pageKeys) {
           const snap = await get(ref(db, `${p}/prenotazioni`));
           const list = snap.val() ? Object.values(snap.val()) : [];
           if (list.find(b => b.matricola === matricolaToCheck)) {
-            if (!isAdmin.value) {
-              // Pulizia form non admin
-              booking.name = '';
-              booking.matricola = '';
-              booking.slot = null;
-            } else {
-              // Pulizia form admin
-              booking.name = '';
-              booking.matricola = '';
-              booking.slot = null;
-            }
-            return alert(`Matricola già prenotata in un altro giorno (${pageNames[p]}).`);
+            booking.name = '';
+            booking.matricola = '';
+            booking.slot = null;
+            await showAlert(`Matricola già prenotata in un altro giorno (${pageNames[p]}).`, 'Prenotazione esistente');
+            return;
           }
         }
 
         const nome = isAdmin.value ? booking.name : `${user.lastName} ${user.firstName}`;
-        if (!nome) return alert('Nome/Cognome mancante per la prenotazione');
+        if (!nome) {
+          await showAlert('Nome/Cognome mancante per la prenotazione', 'Errore');
+          return;
+        }
 
-        // Controlla disponibilità posti anche per l'admin
         const currentSlotBookings = bookingsBySlot[booking.slot] || [];
-        const maxSeats = booking.slot === 8 ? 9999 : seatsPerSlot.value; // Riserve illimitate
+        const maxSeats = booking.slot === 8 ? 9999 : seatsPerSlot.value;
 
         if (currentSlotBookings.length >= maxSeats) {
-             return alert(`Posti esauriti per la fascia selezionata (${slots.find(s => s.id === booking.slot).label}).`);
+          await showAlert(`Posti esauriti per la fascia selezionata (${slots.find(s => s.id === booking.slot).label}).`, 'Posti esauriti');
+          return;
         }
 
         await push(ref(db, `${user.pageChoice}/prenotazioni`), {
@@ -306,101 +334,114 @@ createApp({
         booking.matricola = '';
         booking.slot = null;
 
-        alert('Prenotazione registrata con successo!');
+        await showAlert('Prenotazione registrata con successo!', 'Successo');
 
       } catch (error) {
         console.error("Errore durante la prenotazione:", error);
-        alert(`Si è verificato un errore: ${error.message}`);
+        await showAlert(`Si è verificato un errore: ${error.message}`, 'Errore');
       }
     }
 
-    function confirmBook() {
+    async function confirmBook() {
       if (!auth.currentUser) {
-        alert("Devi accedere per prenotare.");
+        await showAlert("Devi accedere per prenotare.", 'Accesso richiesto');
         view.value = 'auth';
         return;
       }
-      if (confirm('Confermi la prenotazione per la fascia selezionata?')) book();
+      const confirmed = await showConfirm('Confermi la prenotazione per la fascia selezionata?', 'Conferma prenotazione');
+      if (confirmed) book();
     }
 
-    function adminLogin() {
-      const p=prompt('Password admin:');
+    async function adminLogin() {
+      const p = await showPrompt('Inserisci la password admin:', 'Accesso Admin');
       if (!p) return;
-      get(ref(db,'adminPass')).then(s=>{
+      
+      try {
+        const s = await get(ref(db,'adminPass'));
         if(s.exists() && s.val()===p) {
           isAdmin.value=true;
-          alert('Accesso Admin effettuato');
+          await showAlert('Accesso Admin effettuato', 'Successo');
         } else {
-          alert('Password admin errata');
+          await showAlert('Password admin errata', 'Errore');
         }
-      }).catch(e => {
+      } catch (e) {
         console.error("Errore lettura password admin:", e);
-        alert("Errore nel verificare la password admin.");
-      });
+        await showAlert("Errore nel verificare la password admin.", 'Errore');
+      }
     }
 
-    function exitAdmin() { 
+    async function exitAdmin() { 
       isAdmin.value=false; 
-      alert('Uscito Area Riservata'); 
+      await showAlert('Uscito Area Riservata', 'Info'); 
     }
 
-    // ===================================
-    // NUOVE FUNZIONI ADMIN (PAGINE)
-    // ===================================
-    function addPage() {
+    async function addPage() {
       const name = newPageName.value.trim();
-      if (!name) return alert('Inserisci un nome per la nuova pagina.');
+      if (!name) {
+        await showAlert('Inserisci un nome per la nuova pagina.', 'Errore');
+        return;
+      }
       
-      const newKey = 'page' + Date.now(); // Genera una chiave univoca
+      const newKey = 'page' + Date.now();
       
       const updates = {};
       updates[`pageNames/${newKey}`] = name;
       updates[`blocks/${newKey}`] = false;
       
-      update(ref(db), updates)
-        .then(() => {
-          alert(`Pagina "${name}" aggiunta con successo.`);
-          newPageName.value = '';
-        })
-        .catch(e => console.error("Errore addPage:", e));
+      try {
+        await update(ref(db), updates);
+        await showAlert(`Pagina "${name}" aggiunta con successo.`, 'Successo');
+        newPageName.value = '';
+      } catch (e) {
+        console.error("Errore addPage:", e);
+        await showAlert('Errore durante l\'aggiunta della pagina', 'Errore');
+      }
     }
     
-    function removePage(key) {
+    async function removePage(key) {
       if(Object.keys(pageNames).length <= 1) {
-        return alert('Non puoi eliminare l\'ultima pagina disponibile.');
+        await showAlert('Non puoi eliminare l\'ultima pagina disponibile.', 'Errore');
+        return;
       }
-      const pageName = pageNames[key]; // Salva il nome prima della cancellazione
-      if(confirm(`ATTENZIONE: Eliminare la pagina "${pageName}" cancellerà TUTTE le prenotazioni ad essa associate. Confermi?`)){
-        // Rimuove localmente la pagina prima di rimuoverla da Firebase
+      
+      const pageName = pageNames[key];
+      const confirmed = await showConfirm(
+        `ATTENZIONE: Eliminare la pagina "${pageName}" cancellerà TUTTE le prenotazioni ad essa associate. Confermi?`,
+        'Eliminazione pagina'
+      );
+      
+      if(confirmed){
         delete pageNames[key];
         delete blocks[key];
         
-        // Rimuove il nome della pagina
-        remove(ref(db, `pageNames/${key}`))
-          .then(() => remove(ref(db, `blocks/${key}`))) // Rimuove il blocco
-          .then(() => remove(ref(db, key))) // Rimuove la cartella della pagina con tutte le prenotazioni
-          .then(() => {
-            alert(`Pagina "${pageName}" eliminata con successo.`);
-            // Aggiorna la scelta pagina utente se è stata rimossa
-            if (user.pageChoice === key) {
-              const remainingKeys = Object.keys(pageNames);
-              user.pageChoice = remainingKeys.length > 0 ? remainingKeys[0] : 'page1';
-            }
-          })
-          .catch(e => {
-            console.error("Errore removePage:", e);
-            alert(`Errore durante l'eliminazione della pagina: ${e.message}. Controlla la console per i dettagli.`);
-            // In caso di errore, ricarica i dati da Firebase
-            location.reload();
-          });
+        try {
+          await remove(ref(db, `pageNames/${key}`));
+          await remove(ref(db, `blocks/${key}`));
+          await remove(ref(db, key));
+          await showAlert(`Pagina "${pageName}" eliminata con successo.`, 'Successo');
+          
+          if (user.pageChoice === key) {
+            const remainingKeys = Object.keys(pageNames);
+            user.pageChoice = remainingKeys.length > 0 ? remainingKeys[0] : 'page1';
+          }
+        } catch (e) {
+          console.error("Errore removePage:", e);
+          await showAlert(`Errore durante l'eliminazione della pagina: ${e.message}`, 'Errore');
+          location.reload();
+        }
       }
     }
-    // ===================================
 
-    // Funzione modificata per accettare il nuovo nome
-    function updatePageName(key, newName) { 
-        if (newName.trim() === '') return alert('Il nome della pagina non può essere vuoto.');
-        set(ref(db,`pageNames/${key}`), newName).catch(e => console.error("Errore updatePageName:", e)); 
+    async function updatePageName(key, newName) { 
+      if (newName.trim() === '') {
+        await showAlert('Il nome della pagina non può essere vuoto.', 'Errore');
+        return;
+      }
+      try {
+        await set(ref(db,`pageNames/${key}`), newName);
+      } catch (e) {
+        console.error("Errore updatePageName:", e);
+      }
     }
     
     function updateText(k) { 
@@ -415,34 +456,45 @@ createApp({
       set(ref(db,'adminPass'), adminPass.value).catch(e => console.error("Errore updateAdminPass:", e)); 
     }
     
-    // NUOVA FUNZIONE PER AGGIORNARE IL NUMERO DI POSTI PER FASCIA
-    function updateSeatsPerSlot() {
+    async function updateSeatsPerSlot() {
       const newValue = parseInt(seatsPerSlot.value);
       if (isNaN(newValue) || newValue < 1 || newValue > 20) {
-        alert('Inserisci un numero valido tra 1 e 20');
-        // Ricarica il valore dal database
-        get(ref(db, 'seatsPerSlot')).then(s => {
-          if (s.exists()) seatsPerSlot.value = s.val();
-        });
+        await showAlert('Inserisci un numero valido tra 1 e 20', 'Errore');
+        const s = await get(ref(db, 'seatsPerSlot'));
+        if (s.exists()) seatsPerSlot.value = s.val();
         return;
       }
-      set(ref(db, 'seatsPerSlot'), newValue)
-        .then(() => alert('Numero posti per fascia aggiornato con successo!'))
-        .catch(e => {
-          console.error("Errore updateSeatsPerSlot:", e);
-          alert('Errore durante l\'aggiornamento');
-        });
-    }
-    
-    function removeBooking(key) {
-      if(confirm('Confermi cancellazione prenotazione?')){
-        remove(ref(db,`${user.pageChoice}/prenotazioni/${key}`)).catch(e => console.error("Errore removeBooking:", e));
+      try {
+        await set(ref(db, 'seatsPerSlot'), newValue);
+        await showAlert('Numero posti per fascia aggiornato con successo!', 'Successo');
+      } catch (e) {
+        console.error("Errore updateSeatsPerSlot:", e);
+        await showAlert('Errore durante l\'aggiornamento', 'Errore');
       }
     }
     
-    function resetAll() {
-      if(confirm('ATTENZIONE: Questa operazione cancellerà TUTTE le prenotazioni per questa pagina. Confermi reset?')){
-        remove(ref(db,`${user.pageChoice}/prenotazioni`)).catch(e => console.error("Errore resetAll:", e));
+    async function removeBooking(key) {
+      const confirmed = await showConfirm('Confermi cancellazione prenotazione?', 'Conferma');
+      if(confirmed){
+        try {
+          await remove(ref(db,`${user.pageChoice}/prenotazioni/${key}`));
+        } catch (e) {
+          console.error("Errore removeBooking:", e);
+        }
+      }
+    }
+    
+    async function resetAll() {
+      const confirmed = await showConfirm(
+        'ATTENZIONE: Questa operazione cancellerà TUTTE le prenotazioni per questa pagina. Confermi reset?',
+        'Reset prenotazioni'
+      );
+      if(confirmed){
+        try {
+          await remove(ref(db,`${user.pageChoice}/prenotazioni`));
+        } catch (e) {
+          console.error("Errore resetAll:", e);
+        }
       }
     }
 
@@ -463,9 +515,9 @@ createApp({
       fileInput.value.click(); 
     }
 
-    function handleFileUpload(e) {
+    async function handleFileUpload(e) {
       const reader=new FileReader();
-      reader.onload=evt=>{
+      reader.onload=async evt=>{
         try {
           const wb=XLSX.read(evt.target.result,{type:'binary'});
           if (!wb.SheetNames || wb.SheetNames.length === 0) {
@@ -478,40 +530,49 @@ createApp({
             throw new Error("Formato dati nel foglio Excel non valido.");
           }
 
-          if(confirm('ATTENZIONE: Importando, sovrascriverai TUTTE le prenotazioni attuali per questa pagina. Confermi carica?')){
-            remove(ref(db,`${user.pageChoice}/prenotazioni`)).then(()=> {
-              const updates = {};
-              let rowErrors = 0;
-              rows.forEach(r=>{
-                const slotObj=slots.find(s=>(s.id===8?'Riserve':s.label)===r.Fascia);
-                if(slotObj && r.Matricola && r.Nome) {
-                  const newKey = push(ref(db,`${user.pageChoice}/prenotazioni`)).key;
-                  if (newKey) {
-                    updates[newKey] = { name:r.Nome, matricola:r.Matricola, slot:slotObj.id };
-                  } else {
-                    console.warn("Impossibile generare chiave per riga importata:", r);
-                    rowErrors++;
-                  }
+          const confirmed = await showConfirm(
+            'ATTENZIONE: Importando, sovrascriverai TUTTE le prenotazioni attuali per questa pagina. Confermi carica?',
+            'Importazione Excel'
+          );
+          
+          if(confirmed){
+            await remove(ref(db,`${user.pageChoice}/prenotazioni`));
+            const updates = {};
+            let rowErrors = 0;
+            rows.forEach(r=>{
+              const slotObj=slots.find(s=>(s.id===8?'Riserve':s.label)===r.Fascia);
+              if(slotObj && r.Matricola && r.Nome) {
+                const newKey = push(ref(db,`${user.pageChoice}/prenotazioni`)).key;
+                if (newKey) {
+                  updates[newKey] = { name:r.Nome, matricola:r.Matricola, slot:slotObj.id };
                 } else {
-                  console.warn("Riga Excel non valida o incompleta (richiede Fascia, Matricola, Nome):", r);
+                  console.warn("Impossibile generare chiave per riga importata:", r);
                   rowErrors++;
                 }
-              });
-
-              if (Object.keys(updates).length > 0) {
-                set(ref(db,`${user.pageChoice}/prenotazioni`), updates)
-                .then(() => {
-                  alert(`Importazione Excel completata con successo! ${rowErrors > 0 ? `Attenzione: ${rowErrors} righe con errori o incomplete non sono state importate.` : ''}`);
-                })
-                .catch(e => alert(`Errore durante il salvataggio dei dati importati: ${e.message}`));
               } else {
-                alert(`Nessun dato valido trovato nel file Excel da importare. ${rowErrors > 0 ? `(${rowErrors} righe con errori nel formato)` : ''}`);
+                console.warn("Riga Excel non valida o incompleta (richiede Fascia, Matricola, Nome):", r);
+                rowErrors++;
               }
+            });
 
-            }).catch(e => alert(`Errore durante la pulizia delle prenotazioni esistenti prima dell'importazione: ${e.message}`));
+            if (Object.keys(updates).length > 0) {
+              await set(ref(db,`${user.pageChoice}/prenotazioni`), updates);
+              await showAlert(
+                `Importazione Excel completata con successo! ${rowErrors > 0 ? `Attenzione: ${rowErrors} righe con errori o incomplete non sono state importate.` : ''}`,
+                'Successo'
+              );
+            } else {
+              await showAlert(
+                `Nessun dato valido trovato nel file Excel da importare. ${rowErrors > 0 ? `(${rowErrors} righe con errori nel formato)` : ''}`,
+                'Attenzione'
+              );
+            }
           }
         } catch (error) {
-          alert(`Errore durante la lettura del file Excel: ${error.message}. Assicurati che sia un file Excel valido (.xlsx) e abbia le colonne 'Fascia', 'Matricola', 'Nome'.`);
+          await showAlert(
+            `Errore durante la lettura del file Excel: ${error.message}. Assicurati che sia un file Excel valido (.xlsx) e abbia le colonne 'Fascia', 'Matricola', 'Nome'.`,
+            'Errore'
+          );
         }
         e.target.value = null;
       };
@@ -525,7 +586,8 @@ createApp({
       remaining, mask, register, login, logout, enterPage, loadBookings, confirmBook, adminLogin, exitAdmin, 
       updatePageName, updateText, updateBlock, updateAdminPass, updateSeatsPerSlot, removeBooking, resetAll, exportExcel, 
       importExcel, handleFileUpload, focusNext, fileInput, 
-      addPage, removePage // Funzioni per la gestione dinamica delle pagine
+      addPage, removePage,
+      modal, modalConfirm, modalCancel // Aggiunti per il sistema modale
     };
   }
 }).mount('#app');
