@@ -1,597 +1,213 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
- <title>Gruppo Comunale Fidas adsp - Prenotazioni</title>
-  <style>
-    /* Reset e base */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; font-size: 16px; background: #f5f5f5; display: flex; justify-content: center; }
-   .container { max-width: 1000px; width: 100%; margin: auto; padding: 50px; background: hsl(192,77%,85%); border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    h1 { font-size: 2.4em; text-align: center; }
-    h2 { font-size: 2.0em; margin-top: 100px; margin-bottom: 80px; color: red; }
-    h3 { font-size: 1.5em; margin-top: 120px; margin-bottom: 30px; }
-    h4 { font-size: 1.1em; margin-top: 80px; margin-bottom: 100px; }
-    h5 { font-size: 0.9em; text-align: right; margin-top: 120px; margin-bottom: -100px; width: 100%; /* Assicura che occupi la larghezza per allineare il testo */}
-    h6 { font-size: 0.9em; text-align: right; margin-top: 400px; margin-bottom: -410px; width: 100%; }
-    p { font-size: 0.9em; text-align: right; margin-top: 230px; margin-bottom: -170px; width: 100%; }
-   .landing-buttons, .actions { margin-top: 20px; }
-   button, input, select { font-family: inherit; }
-   button { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; background: #000; color: #fff; }
-   button.reset { background: red; color: #fff; float: right; }
-   button.exit { background: red; color: #fff; }
-   button.admin-exit { background: orange; color: #fff; }
-   input[type="text"], input[type="email"], input[type="password"], select {
-     width: 97%; padding: 15px; margin: 5px 0; background: rgb(232,229,229);
-border: 1px solid #131313; border-radius: 5px; font-size: 1.15em;
-    }
-    nav { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
-   .admin-booking-fields input { width: 48%; display: inline-block; margin-right: 4%; }
-   .altre-azioni { display: flex; gap: 10px; margin-top: 20px; }
-   .altre-azioni button { flex: 1; }
-    table { width: 100%; border-spacing: 5px; border: 1px solid #ddd; margin-top: 20px; }
-    th, td { padding: 8px; border: 1px solid #ddd; vertical-align: top; text-align: center; }
-    th { font-size: 1.2em; letter-spacing: 1px; padding: 10px; }
-   tr:nth-child(even) { background: #4fbefa; }
-   tr:nth-child(odd) { background: #48abcc; }
-   .prenotazione-nome { text-align: left; display: flex; justify-content: space-between; align-items: center; }
-   .prenotazione-nome button { padding: 3px 6px; font-size: 0.7em; }
-   @media screen and (max-width: 700px) {
-     .container { padding: 5px; }
-     input, select { padding: 10px; width: 90%; font-size: 0.85em; }
-      th, td, button { font-size: 0.85em; }
-    }
-   .page-name-input, .text-input { width: 100%; display: block; padding: 15px; margin: 5px 0; }
-   
-   .admin-settings label {
-      display: block;
-      margin-bottom: 15px;
-    }
- </style>
-  
-  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gruppo FIDAS adsp - Prenotazioni</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
-  <div id="app" class="container">
-    <!--Prima pagina -->
-    <div v-if="view==='landing'">
-     <h1>Gruppo Comunale Fidas adsp di San Giusto Canavese</h1>
-     <h2>Benvenuto nella nostra Applicazione di prenotazione.</h2>
-     <h3>Per te un semplice gesto... per chi riceve un aiuto prezioso e vitale.</h3>
-     <h4>{{ texts.landing }}</h4>
-     <h5>Pagina 1</h5>
-     <div class="landing-buttons">
-       <button @click="view='auth'">Accedi</button><span> </span><button @click="view='register'">Registrati</button>
-     </div>
-   </div>
-     <!-- Pagina della Registrazione-->
-    <div v-if="view==='auth' || view==='register'">
-     <h1>Gruppo Comunale Fidas adsp di San Giusto Canavese</h1>
-     <h2>Inserisci le tue credenziali</h2>
-     <h6>Pagina 2</h6>
-     <div style="margin-top:20px;">
-       <input type="text" v-model="user.lastName" placeholder="Cognome" required
-@keydown.tab.prevent="focusNext($event)"
-@keydown.arrow-down.prevent="focusNext($event)">
-       <input type="text" v-model="user.firstName" placeholder="Nome" required
-@keydown.tab.prevent="focusNext($event)"
-@keydown.arrow-down.prevent="focusNext($event)">
-       <input type="text" v-model="user.matricola" placeholder="Matricola" required
-@keydown.tab.prevent="focusNext($event)"
-@keydown.arrow-down.prevent="focusNext($event)">
-       <input type="email" v-model="user.email" placeholder="E-mail" required
-@keydown.tab.prevent="focusNext($event)"
-@keydown.arrow-down.prevent="focusNext($event)">
-       <input type="password" v-model="user.password" placeholder="Password" required
-@keydown.tab.prevent="focusNext($event)"
-@keydown.arrow-down.prevent="focusNext($event)">
-     </div>
-     <button @click="view='landing'">Indietro</button>
-     <button @click="view==='register'? register(): login()">Avanti</button>
-   </div>
-      <!-- Pagina della Selezione-->
-    <div v-if="view==='pageSelect'">
-     <nav>
-       <div></div>
-       <div>
-         <button @click="adminLogin()">Impostazioni</button>
-         <button class="exit" @click="logout()">Esci</button>
-       </div>
-     </nav>
-     <h2>Seleziona una pagina</h2>
-     <h4>{{ texts.pageSelect }}</h4>
-     <p><strong>Pagina 3</strong></p>
-     <label style="display:block; margin-top:10px;">Scegli quando Donare e verifica la disponibilità:
-       <select v-model="user.pageChoice">
-         <option value="page1">{{pageNames.page1}}</option>
-         <option value="page2">{{pageNames.page2}}</option>
-       </select>
-     </label>
-     <button @click="view='auth'">Indietro</button>
-     <button @click="enterPage()">Avanti</button>
-<!-- Admin Settings -->
-     <div v-if="isAdmin" class="admin-settings"> 
-      <!--Rinomina Pagine-->
-      <h3>Rinomina Pagine</h3>
-      <label style="display:block; margin-top:20px; margin-bottom:5px">Pagina 1:</label>
-      <input class="page-name-input" v-model="pageNames.page1" @change="updatePageName('page1')">
-      <label style="display:block; margin-top:20px; margin-bottom: 5px">Pagina 2:</label>
-      <input class="page-name-input" v-model="pageNames.page2" @change="updatePageName('page2')">
-      <!--Modifica i Testi-->
-      <h3>Modifica Testi</h3>
-      <label style="display:block; margin-top:20px; margin-bottom: 5px">I Pagina:</label>
-      <input class="text-input" v-model="texts.landing" @change="updateText('landing')">
-      <label style="display:block; margin-top:20px; margin-bottom: 5px">Pagina della selezione pagine:</label>
-      <input class="text-input" v-model="texts.pageSelect" @change="updateText('pageSelect')">
-      <!--Blocca le pagine delle prenotazioni-->
-      <h3>Blocca Prenotazioni</h3>
-      <label><input type="checkbox" v-model="blocks.page1" @change="updateBlock('page1')"> Blocca:  {{ pageNames.page1 }}</label>
-      <label><input type="checkbox" v-model="blocks.page2" @change="updateBlock('page2')"> Blocca:  {{ pageNames.page2 }}</label>
-      <!--Modifica la password di admin-->
-      <h3>Modifica password admin</h3>
-      <!--mettere: type="text" per vedere la password -->
-      <input type="password" v-model="adminPass" @change="updateAdminPass()" placeholder="Nuova password admin">
-    </div>
-   </div>
-<!-- Pagina di Prenotazione -->
-    <div v-if="view==='page1' || view==='page2'">
-     <nav>
-       <div>Gruppo Comunale Fidas adsp di San Giusto Canavese</div>
-       <div>
-         <button @click="view='pageSelect'">Indietro</button> <button v-if="!isAdmin" @click="adminLogin()">Area Riservata</button>
-         <button class="exit" @click="logout()">Esci</button>
-       </div>
-     </nav>
-      <h2 contenteditable="true" @blur="updatePageName(view)">{{ pageNames[view] }}</h2>
-     <div>
-      <!--Forma per la prenotazione-->
-       <button v-if="isAdmin" class="admin-exit" @click="exitAdmin()">Esci Area Riservata</button>
-       <div v-if="!isAdmin">
-         <input type="text" :value="user.matricola + ' ' + user.lastName + ' ' + user.firstName" disabled>
-       </div>
+    
+    <header class="global-header">
+        <div class="header-content">
+            <img src="logofidas.png" alt="Logo FIDAS" class="header-logo">
+            <span class="header-text">Gruppo FIDAS adsp di San Giusto Canavese</span>
+        </div>
+        </header>
+    
+        </div>
 
-       <div v-else class="admin-booking-fields">
-         <input type="text" v-model="booking.matricola" placeholder="Matricola">
-         <input type="text" v-model="booking.name" placeholder="Cognome Nome">
-       </div>
+    
 
-       <select v-model.number="booking.slot" style="margin-top:10px;">
-         <option :value="null">Seleziona fascia</option>
-         <option v-for="slot in slots" :key="slot.id" :value="slot.id">
-           {{ slot.id===8 ? 'Riserve' : slot.label }} – {{ remaining(slot) }} posti
-         </option>
-       </select>
-       <button @click="confirmBook()">Prenota</button>
-     </div>
-<!--altre azioni-->
-     <div v-if="isAdmin" class="altre-azioni">
-       <button class="reset" @click="resetAll()">Resetta Tutto</button>
-       <button @click="exportExcel()">Scarica Excel</button>
-       <button @click="importExcel()">Carica Excel</button>
-       <input type="file" ref="fileInput" @change="handleFileUpload" style="display:none" />
-     </div>
-<!--Tabella delle prenotazioni-->
-     <table>
-       <thead>
-         <tr><th>Ora</th><th>N.</th><th>Prenotazioni</th><th>Posti</th></tr>
-       </thead>
-       <tbody>
-         <tr v-for="slot in slots" :key="slot.id">
-
-           <td>{{ slot.id===8 ? 'Riserve' : 'Fascia: ' + slot.label }}</td>
-           <td><div v-for="j in seatsPerSlot" :key="j">{{ slot.id*seatsPerSlot + j }}</div></td>
-           <td>
+    
+    <div id="app" class="container" :class="view"> 
+        
+        <div v-if="view==='landing'">
+            <h1 class="main-title">PrenotaQui</h1>
+            <h2>Benvenuto nella nostra Applicazione per le prenotazioni</h2>
+            <p>&nbsp;&nbsp;&nbsp;</p>
+            <hr>
+            <h3>INFORMATIVA SULLA GESTIONE DEI DATI PERSONALI DEI DONATORI:</h3>
             
-             <div v-for="b of bookingsBySlot[slot.id]" :key="b.key" class="prenotazione-nome">
-               <span>{{ b.matricola }} {{ isAdmin ? b.name : mask(b.name) }}</span>
-               <button v-if="isAdmin" @click="removeBooking(b.key)">Cancella</button>
-             </div>
-           </td>
-           <td>{{ remaining(slot) }} posti</td>
-         </tr>
-       </tbody>
-     </table>
-   </div>
-  </div>
-<script type="module">
-   import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
-   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-   import { getDatabase, ref, push, onValue, set, get, child, remove } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
-    // Assicurati che Vue sia importato correttamente qui se usi la versione modulare
-    // Se usi la versione globale caricata con <script src="..."> sopra, questa riga potrebbe non servire o essere diversa
-    // const { createApp, reactive, ref: vueRef } = Vue; // Se usi la versione globale
+            <p class="privacy-text">Ai sensi del Regolamento (UE) 2016/679 (GDPR), informiamo che i dati personali inseriti nel presente modulo di prenotazione sono trattati esclusivamente per finalità organizzative legate alla donazione di sangue. Il trattamento è svolto da persone autorizzate dal Presidente del Gruppo FIDAS San Giusto, Titolare del trattamento, nell'ambito delle attività associative e in conformità all'informativa sottoscritta dal donatore al momento dell'iscrizione alla FIDAS. I dati raccolti non saranno utilizzati per altri scopi e non saranno comunicati a soggetti terzi, salvo obblighi di legge. Il trattamento avviene nel rispetto delle misure di sicurezza previste dalla normativa vigente. Per ulteriori informazioni sul trattamento dei dati, è possibile consultare l'Informativa Privacy FIDAS disponibile presso la sede o richiederne copia al momento della donazione.</p>
+            
+            <h4>Prenotandoti, DICHIARI di aver preso visione di questa formativa.</h4>
+            <hr>           
+            <div class="landing-buttons">
+                <button @click="view='auth'">Accedi</button>
+                <button @click="view='register'">Registrati</button>
+            </div>
+        </div>
 
+        <div v-else-if="view==='auth' || view==='register'">
+            <h1 class="main-title">Inserisci le tue credenziali</h1>
+            <h2></h2>
+            <text></text>
+            <h5>Si prega di compilare tutti i campi richiesti. L'omissione della compilazione, anche solo di uno, impedisce l'accesso al programma.</h5>
+            <div class="form-container">
+                <input type="text" v-model="user.lastName" placeholder="Cognome" required
+                  @keydown.tab.prevent="focusNext($event)"
+                  @keydown.arrow-down.prevent="focusNext($event)">
+                <input type="text" v-model="user.firstName" placeholder="Nome" required
+                  @keydown.tab.prevent="focusNext($event)"
+                  @keydown.arrow-down.prevent="focusNext($event)">
+                <input type="text" v-model="user.matricola" placeholder="Matricola" required
+                  @keydown.tab.prevent="focusNext($event)"
+                  @keydown.arrow-down.prevent="focusNext($event)">
+                <input type="email" v-model="user.email" placeholder="E-mail" required
+                  @keydown.tab.prevent="focusNext($event)"
+                  @keydown.arrow-down.prevent="focusNext($event)">
+                <input type="password" v-model="user.password" placeholder="Password" required
+                  @keydown.tab.prevent="focusNext($event)"
+                  @keydown.arrow-down.prevent="focusNext($event)">
+            </div>
+            <p>&nbsp;&nbsp;&nbsp;</p>
+            <button @click="view='landing'">Indietro</button>
+            <button @click="view==='register'? register(): login()">Avanti</button>
+            
+            
+        </div>
 
-    const firebaseConfig = {
-     apiKey: "AIzaSyAoToelGIbZy2w_Kk0u4HDFIB56AuQNwRU",
-     authDomain: "fidas-san-giusto-can-2.firebaseapp.com",
-     databaseURL: "https://fidas-san-giusto-can-2-default-rtdb.europe-west1.firebasedatabase.app",
-     projectId: "fidas-san-giusto-can-2",
-     storageBucket: "fidas-san-giusto-can-2.appspot.com",
-     messagingSenderId: "963864891985",
-     appId: "1:963864891985:web:33161373f6712197751e70"
-    };
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
+        <div v-else-if="view==='pageSelect'">
+            <h1 class="main-title">Seleziona una pagina</h1>
+            <nav class="top-nav">
+                <div></div>
+                <div>
+                    <button @click="adminLogin()">Area Riservata</button>
+                    <button class="exit" @click="logout()">Esci</button>
+                </div>
+            </nav>
+            <label class="page-select-label">Scegli quando Donare e verifica la disponibilità:
+                <select v-model="user.pageChoice">
+                    <option v-for="(name, key) in pageNames" :key="key" :value="key">
+                        {{ name }}
+                    </option>
+                </select>
+            </label>
+            <p>&nbsp;&nbsp;&nbsp;</p>
+            
+            <button @click="view='auth'">Indietro</button>
+            <button @click="enterPage()">Avanti</button>
+            <h3></h3>
+            <p></p>
+            
 
-    // Se usi la versione modulare di Vue importata qui, DEVI decommentare questa riga e rimuovere lo script src sopra
-    // import { createApp, reactive, ref as vueRef } from 'https://unpkg.com/vue@3/dist/vue.global.js';
-    // Se usi la versione globale (come nel tuo codice attuale con <script src="..."> prima del type="module"), lascia questa riga così com'è o rimuovila se dà errore ma assicurati che Vue sia disponibile globalmente
-    const { createApp, reactive, ref: vueRef } = Vue;
+            <div v-if="isAdmin" class="admin-settings">
+                
+                <h3>Gestione Pagine</h3>
+                <label>Aggiungi Nuova Pagina:</label>
+                <input type="text" v-model="newPageName" placeholder="Nome nuova pagina (es. Gennaio)">
+                <button @click="addPage()">Aggiungi Pagina</button>
+                <p>&nbsp;&nbsp;&nbsp;</p>
+                <hr>
+                
+                <h3>Rinomina Pagine</h3>
+                <div v-for="(name, key, index) in pageNames" :key="key" class="page-management-row">
+                    <label>Pagina {{ index + 1 }}:</label>
+                    <input class="page-name-input" :value="name" @change="e => updatePageName(key, e.target.value)">
+                    <button v-if="Object.keys(pageNames).length > 1" @click="removePage(key)" class="reset">Rimuovi</button>
+                </div>               
+                <p>&nbsp;&nbsp;&nbsp;</p>
+                <hr>
+                <hr>
 
+                <h3>Blocca Prenotazioni</h3>
+                <div v-for="(name, key) in pageNames" :key="key">
+                    <label><input type="checkbox" v-model="blocks[key]" @change="updateBlock(key)"> Blocca: {{ name }}</label>
+                </div>
+                <p>&nbsp;&nbsp;&nbsp;</p>
+                <hr>
+                <hr>
 
-   createApp({
-     setup() {
-       const view = vueRef('landing');
-       const seatsPerSlot = 6;
-       const user = reactive({ lastName:'', firstName:'', matricola:'', email:'', password:'', pageChoice:'page1' });
-       const booking = reactive({ matricola:'', name:'', slot: null });
-       const slots = [
-         { id:0, label:'07:50 – 08:05' }, { id:1, label:'08:10 – 08:30' },
-         { id:2, label:'08:35 – 08:55' }, { id:3, label:'09:00 – 09:20' },
-         { id:4, label:'09:25 – 09:45' }, { id:5, label:'09:50 – 10:10' },
-         { id:6, label:'10:15 – 10:35' }, { id:7, label:'10:40 – 11:00' },
-         { id:8, label:'Riserve' }
-       ];
-       const bookingsBySlot = reactive({});
-       const isAdmin = vueRef(false);
-       const pageNames = reactive({ page1:'Pagina 1', page2:'Pagina 2' });
-       const texts = reactive({ landing:'Se sei un nuovo donatore o non fai parte di questo gruppo, contatta il N. 333.78.36.256 o uno del Direttivo, ci penseremo noi ad inserirti nella lista.', pageSelect:"Si prega di avere con sè la carta d' IDENTITA' ed il tesserino FIDAS" });
-       const blocks = reactive({ page1:false, page2:false });
-       const fileInput = vueRef(null);
-       const adminPass = vueRef('');
+                <h3>Modifica Testi</h3>
+                <label>I Pagina:</label>
+                <input class="text-input" v-model="texts.landing" @change="updateText('landing')">
+                <label>Pagina della selezione pagine:</label>
+                <input class="text-input" v-model="texts.pageSelect" @change="updateText('pageSelect')">
+                <p>&nbsp;&nbsp;&nbsp;</p>
+                <hr>
+                <hr>
+                
+                <h3>Numero Posti per Fascia Oraria</h3>
+                <label>Posti disponibili per ogni fascia (escluse Riserve):</label>
+                <input type="number" v-model.number="seatsPerSlot" @change="updateSeatsPerSlot()" 
+                       min="1" max="20" placeholder="Numero posti (es. 6)">
+                <small style="display:block; margin-top:5px; color:#666;">Valore attuale: {{ seatsPerSlot }} posti per fascia</small>
+                <p>&nbsp;&nbsp;&nbsp;</p>
+                <hr>
+                <hr>
 
-       // Inizializzazioni DB
-       get(ref(db, 'adminPass')).then(s => { if (!s.exists()) set(ref(db, 'adminPass'), 'admin123'); });
-       get(ref(db, 'h4Texts')).then(s => { if (!s.exists()) set(ref(db, 'h4Texts'), texts); });
-       get(ref(db, 'blocks/page1')).then(s => { if (!s.exists()) set(ref(db, 'blocks/page1'), false); });
-       get(ref(db, 'blocks/page2')).then(s => { if (!s.exists()) set(ref(db, 'blocks/page2'), false); });
+                <h3>Modifica password admin</h3>
+                <input type="password" v-model="adminPass" @change="updateAdminPass()" placeholder="Nuova password admin">
+            </div>
+        </div>
 
-       // Listener per lo stato di autenticazione all'avvio o al cambio stato
-       onAuthStateChanged(auth, u => {
-         if (u) {
-           // Se 'u' esiste (l'utente è loggato)
-           get(child(ref(db), `users/${u.uid}`))
-             .then(snap => {
-               if (snap.exists()) {
-                 Object.assign(user, snap.val());
-                 console.log("Dati utente caricati all'avvio:", user);
-               } else {
-                 console.warn("Utente autenticato (Auth) ma dati profilo mancanti nel DB:", u.uid);
-                 // Opzionale: potresti forzare un logout qui se il profilo DB è mancante
-                 // signOut(auth);
-               }
-               // *** NON CAMBIARE LA VISTA QUI! ***
-               console.log("Utente autenticato rilevato. Rimango sulla landing page (o vista corrente).");
-            })
-            .catch(dbError => {
-             console.error("Errore caricamento dati utente all'avvio:", dbError);
-             // Gestisci l'errore di caricamento dati all'avvio
-            });
-         } else {
-           // Se 'u' non esiste (l'utente NON è loggato)
-           view.value = 'landing'; // Assicura che la vista sia landing
-           isAdmin.value = false;
-           console.log("Nessun utente autenticato. Vado sulla landing page.");
-           // Pulisci i dati utente locali alla disconnessione completa
-           user.lastName = ''; user.firstName = ''; user.matricola = '';
-           user.email = ''; user.password = ''; // Pulisci anche email e password locali
-         }
-       });
+        <div v-else-if="Object.keys(pageNames).includes(view)"> 
+            <h1 class="main-title">Pagina prenotazione</h1>
+            <nav class="top-nav">
+                <div></div>
+                <div>
+                    <button @click="view='pageSelect'">Indietro</button> 
+                    <button v-if="!isAdmin" @click="adminLogin()">Area Riservata</button>
+                    <button class="exit" @click="logout()">Esci</button>
+                </div>
+            </nav>
+            <h2 contenteditable="true" @blur="updatePageName(view, $event.target.innerText)" class="session-title">{{ pageNames[view] }}</h2>
+            
+            <div class="booking-section">
+                <button v-if="isAdmin" class="admin-exit" @click="exitAdmin()">Esci Area Riservata</button>
+                
+                <div v-if="!isAdmin" class="user-booking-info">
+                    <input type="text" :value="user.matricola + ' ' + user.lastName + ' ' + user.firstName" disabled>
+                </div>
+                <div v-else class="admin-booking-fields">
+                    <input type="text" v-model="booking.matricola" placeholder="Matricola">
+                    <input type="text" v-model="booking.name" placeholder="Cognome Nome">
+                </div>
 
-       onValue(ref(db, 'pageNames'), snap => snap.val() && Object.assign(pageNames, snap.val()));
-       onValue(ref(db, 'h4Texts'), snap => snap.val() && Object.assign(texts, snap.val()));
-       onValue(ref(db, 'blocks'), snap => snap.val() && Object.assign(blocks, snap.val()));
-       onValue(ref(db,'adminPass'),s=>adminPass.value=s.val()||'admin123');
+                <select v-model.number="booking.slot" class="slot-select">
+                    <option :value="null">Seleziona fascia</option>
+                    <option v-for="slot in slots" :key="slot.id" :value="slot.id">
+                        {{ slot.id===8 ? 'Riserve' : slot.label }} – {{ remaining(slot) }} posti
+                    </option>
+                </select>
+                <p>&nbsp;&nbsp;</p>
+                
+                <button @click="confirmBook()">Prenota</button>
+            </div>
+            <p>&nbsp;&nbsp;&nbsp;</p>
+             
+            <div v-if="isAdmin" class="admin-actions">
+                
+                <button class="reset" @click="resetAll()">Resetta Tutto</button>
+                <button @click="exportExcel()">Scarica Excel</button>
+                <button @click="importExcel()">Carica Excel</button>
+                <input type="file" ref="fileInput" @change="handleFileUpload" style="display:none" />
+            </div>
 
-       const remaining = slot => seatsPerSlot - (bookingsBySlot[slot.id]?.length || 0);
-       const mask = name => name.split(' ').map(p => p.slice(0,2)+'..').join(' ');
+            <table class="bookings-table">
+                <thead>
+                    <tr><th>Ora</th><th>N.</th><th>Prenotazioni</th><th>Posti</th></tr>
+                </thead>
+                <tbody>
+                    <tr v-for="slot in slots" :key="slot.id">
+                        <td>{{ slot.id===8 ? 'Riserve' : 'Fascia: ' + slot.label }}</td>
+                        <td><div v-for="j in seatsPerSlot" :key="j">{{ slot.id*seatsPerSlot + j }}</div></td>
+                        <td>
+                            <div v-for="b of bookingsBySlot[slot.id]" :key="b.key" class="prenotazione-nome">
+                                <span>{{ b.matricola }} {{ isAdmin ? b.name : mask(b.name, b.matricola) }}</span>
+                                <button v-if="isAdmin" @click="removeBooking(b.key)">Cancella</button>
+                            </div>
+                        </td>
+                        <td>{{ remaining(slot) }} posti</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-       function focusNext(e) {
-         const form = e.target.form;
-         const idx = Array.prototype.indexOf.call(form, e.target);
-         // Aggiunto controllo per evitare errore se non c'è un elemento successivo
-         if (idx > -1 && idx + 1 < form.elements.length) {
-           form.elements[idx + 1]?.focus();
-         }
-        }
-
-       // Funzione di Registrazione CORRETTA
-       function register() {
-            // Aggiungi validazione campi se necessario anche qui
-            if (!validateAuthFields()) return;
-
-            createUserWithEmailAndPassword(auth, user.email, user.password)
-                .then(cred => {
-                    // SALVA I DATI UTENTE NEL DB DOPO L'AUTENTICAZIONE
-                    set(ref(db, `users/${cred.user.uid}`), {
-                       lastName: user.lastName,
-                       firstName: user.firstName,
-                       matricola: user.matricola,
-                       email: user.email // Salva anche email se utile
-                    })
-                    .then(() => {
-                        alert('Registrazione effettuata con successo! Ora puoi procedere.');
-                        // *** NAVIGA ALLA PAGINA DI SELEZIONE DOPO REGISTRAZIONE + SALVATAGGIO DATI ***
-                        view.value = 'pageSelect';
-                        loadBookings(); // Carica le prenotazioni per la pagina di selezione
-                    })
-                    .catch(dbError => {
-                        console.error("Errore salvataggio dati utente dopo registrazione:", dbError);
-                        alert(`Errore nel salvare i dati utente: ${dbError.message}. Riprova o contatta l'amministrazione.`);
-                        // Opzionale: eliminare l'utente Auth appena creato se il salvataggio DB fallisce
-                        // auth.currentUser?.delete().catch(deleteError => console.error("Errore eliminazione utente:", deleteError));
-                    });
-                })
-                .catch(authError => {
-                    console.error("Errore registrazione:", authError);
-                    alert(`Errore durante la registrazione: ${authError.message}`);
-                });
-        }
-
-        // Funzione di Login CORRETTA (ripristinata logica di navigazione)
-        function login() {
-             // Aggiungi validazione campi se necessario anche qui
-             if (!validateAuthFields()) return;
-
-             signInWithEmailAndPassword(auth, user.email, user.password)
-                .then(cred => {
-                    // QUESTA PARTE (.then) viene eseguita SOLO SE signInWithEmailAndPassword HA SUCCESSO
-                    // Dopo il login Auth riuscito, carica i dati utente dal DB e poi naviga
-                    get(child(ref(db), `users/${cred.user.uid}`))
-                    .then(snap => {
-                        // QUESTO SECONDO .then viene eseguito SOLO SE LA LETTURA DAL DATABASE HA SUCCESSO
-                        if (snap.exists()) {
-                            Object.assign(user, snap.val()); // Aggiorna l'oggetto user locale
-                            alert('Accesso effettuato con successo!'); // Mostra un alert di successo
-                            // *** NAVIGA ALLA PAGINA DI SELEZIONE QUI ***
-                            view.value = 'pageSelect';
-                            loadBookings(); // Carica le prenotazioni
-                        } else {
-                            // Se l'autenticazione Firebase ha successo, ma i dati utente NON si trovano nel database
-                            console.warn("Utente autenticato (Auth) ma dati profilo mancanti nel DB:", cred.user.uid);
-                            alert('Accesso effettuato, ma dati profilo non trovati nel database. Contatta l\'amministrazione.');
-                            signOut(auth); // Disconnette l'utente (per evitare uno stato inconsistente)
-                            // NON C'È NAVIGAZIONE a 'pageSelect' qui
-                        }
-                    })
-                    .catch(dbError => {
-                        // QUESTA PARTE (.catch) viene eseguita SE LA LETTURA DAL DATABASE FALLISCE
-                        console.error("Errore caricamento dati utente dopo login:", dbError);
-                        alert(`Errore nel caricare i dati utente dal database: ${dbError.message}`);
-                        signOut(auth); // Disconnette l'utente in caso di errore DB
-                        // NON C'È NAVIGAZIONE a 'pageSelect' qui
-                    });
-                })
-                .catch(authError => {
-                    // QUESTA PARTE (.catch) viene eseguita SE L'AUTENTICAZIONE CON signInWithEmailAndPassword FALLISCE
-                    console.error("Errore login:", authError);
-                    alert(`Errore durante l\'accesso: ${authError.message}`);
-                    // NON C'È NAVIGAZIONE a 'pageSelect' qui
-                    // La vista rimane quella corrente ('auth' o 'register')
-                });
-        }
-
-        // Funzione di validazione dei campi (aggiunta o ripristinata se mancante)
-        function validateAuthFields() {
-            if (!user.lastName || !user.firstName || !user.matricola || !user.email || !user.password) {
-                alert('Per favore, compila tutti i campi (Cognome, Nome, Matricola, E-mail, Password) per procedere.');
-                return false; // Validazione fallita
-            }
-            return true; // Validazione superata
-        }
-
-
-       function logout() {
-             signOut(auth).then(() => {
-                 console.log("Utente disconnesso");
-                 // La vista tornerà alla landing grazie all'else block in onAuthStateChanged
-             }).catch((error) => {
-                 console.error("Errore durante la disconnessione:", error);
-                 alert("Si è verificato un errore durante la disconnessione.");
-             });
-        }
-
-       function enterPage() {
-         // Assicurati che l'utente sia loggato prima di entrare in una pagina di prenotazione
-          if (!auth.currentUser) {
-               alert("Devi accedere per prenotare.");
-               view.value = 'auth'; // Riporta alla pagina di login se per qualche motivo non lo è
-               return;
-           }
-         if (blocks[user.pageChoice]) {
-               alert('Al momento la pagina di prenotazione è bloccata. Sarai avvisato quando sarà disponibile.');
-               return;
-           }
-         view.value = user.pageChoice; loadBookings();
-        }
-
-       function loadBookings() { onValue(ref(db, `${user.pageChoice}/prenotazioni`), snap => { const data=snap.val()||{}; slots.forEach(s=>bookingsBySlot[s.id]=[]); Object.entries(data).forEach(([key,b])=>bookingsBySlot[b.slot].push({...b,key})); }); }
-
-        // Mantieni la funzione book e confirmBook invariate (o ripristina le versioni precedenti se funzionavano meglio)
-       async function book() {
-         if (!auth.currentUser) { // Controllo aggiunto: utente deve essere loggato per prenotare
-           alert("Devi accedere per prenotare.");
-           view.value = 'auth';
-           return;
-         }
-         if (booking.slot==null) return alert('Seleziona fascia');
-
-         // Determina la matricola da controllare (admin o utente normale)
-         const matricolaToCheck = isAdmin.value ? booking.matricola : user.matricola; // Usa user.matricola per utente normale
-         if (!matricolaToCheck) return alert('Matricola mancante');
-
-         try {
-           // Controlla in entrambe le pagine se la matricola è già prenotata
-           const pages = ['page1', 'page2'];
-           for (let p of pages) {
-             const snap = await get(ref(db, `${p}/prenotazioni`));
-             // Correzione: Object.values(snap.val())
-             const list = snap.val() ? Object.values(snap.val()) : [];
-             if (list.find(b => b.matricola === matricolaToCheck)) {
-                 // Resetta i campi solo se l'utente non è admin, per evitare confusione nell'interfaccia admin
-                 if (!isAdmin.value) {
-                    booking.name = '';
-                    booking.matricola = ''; // Non resettare user.matricola qui!
-                    booking.slot = null;
-                 } else {
-                     // Per admin, potresti voler resettare solo i campi admin-specifici
-                     booking.name = '';
-                     booking.matricola = '';
-                     booking.slot = null;
-                 }
-               return alert('Matricola già prenotata in un altro giorno');
-             }
-           }
-
-           // Se non esiste, procedi con la prenotazione
-            // Usa booking.name per admin, user.lastName + user.firstName per utente normale
-           const nome = isAdmin.value ? booking.name : `${user.lastName} ${user.firstName}`;
-             if (!nome) return alert('Nome/Cognome mancante per la prenotazione'); // Aggiunto controllo sul nome
-
-           await push(ref(db, `${user.pageChoice}/prenotazioni`), {
-             name: nome,
-             matricola: matricolaToCheck,
-             slot: booking.slot
-           });
-
-           // Reset campi dopo successo
-            booking.name = '';
-            booking.matricola = '';
-            booking.slot = null;
-
-           alert('Prenotazione registrata con successo!');
-
-         } catch (error) {
-           console.error("Errore durante la prenotazione:", error);
-           alert(`Si è verificato un errore: ${error.message}`);
-         }
-        }
-
-       function confirmBook() {
-             // Aggiunto controllo per utente loggato prima di confermare
-             if (!auth.currentUser) {
-                 alert("Devi accedere per prenotare.");
-                 view.value = 'auth';
-                 return;
-             }
-             if (confirm('Confermi la prenotazione per la fascia selezionata?')) book();
-        }
-
-       function adminLogin() {
-             const p=prompt('Password admin:');
-             if (!p) return; // Esci se l'utente annulla o non mette password
-             get(ref(db,'adminPass')).then(s=>{
-                 if(s.exists() && s.val()===p) { // Controlla se la password admin esiste e corrisponde
-                     isAdmin.value=true;
-                     alert('Accesso Admin effettuato');
-                 } else {
-                     alert('Password admin errata');
-                 }
-             }).catch(e => {
-                 console.error("Errore lettura password admin:", e);
-                 alert("Errore nel verificare la password admin.");
-             });
-        }
-
-       function exitAdmin() { isAdmin.value=false; alert('Uscito Area Riservata'); }
-
-       // Aggiunto gestione errori per le operazioni di scrittura DB
-       function updatePageName(p) { set(ref(db,`pageNames/${p}`), pageNames[p]).catch(e => console.error("Errore updatePageName:", e)); }
-       function updateText(k) { set(ref(db,`h4Texts/${k}`), texts[k]).catch(e => console.error("Errore updateText:", e)); }
-       function updateBlock(p) { set(ref(db,`blocks/${p}`), blocks[p]).catch(e => console.error("Errore updateBlock:", e)); }
-       function updateAdminPass() { set(ref(db,'adminPass'), adminPass.value).catch(e => console.error("Errore updateAdminPass:", e)); }
-       function removeBooking(key) {
-            if(confirm('Confermi cancellazione prenotazione?')){
-                remove(ref(db,`${user.pageChoice}/prenotazioni/${key}`)).catch(e => console.error("Errore removeBooking:", e));
-            }
-        }
-       function resetAll() {
-             if(confirm('ATTENZIONE: Questa operazione cancellerà TUTTE le prenotazioni per questa pagina. Confermi reset?')){
-                 remove(ref(db,`${user.pageChoice}/prenotazioni`)).catch(e => console.error("Errore resetAll:", e));
-             }
-        }
-
-        // Mantieni le funzioni Excel invariate o ripristina le versioni precedenti se funzionavano meglio
-       function exportExcel() {
-         const wb=XLSX.utils.book_new(), data=[];
-         slots.forEach(s=>bookingsBySlot[s.id]?.forEach(b=>data.push({ Giorno:pageNames[user.pageChoice], Fascia:(s.id===8?'Riserve':s.label), Matricola:b.matricola, Nome:b.name })));
-         const ws=XLSX.utils.json_to_sheet(data);
-           XLSX.utils.book_append_sheet(wb,ws,'Prenotazioni');
-           XLSX.writeFile(wb,`prenotazioni_${user.pageChoice}.xlsx`);
-        }
-       function importExcel() { fileInput.value.click(); }
-
-       function handleFileUpload(e) {
-         const reader=new FileReader();
-         reader.onload=evt=>{
-            try {
-              const wb=XLSX.read(evt.target.result,{type:'binary'});
-              // Aggiunta controllo per foglio esistente e conversione in JSON
-              if (!wb.SheetNames || wb.SheetNames.length === 0) {
-                throw new Error("File Excel non valido: nessun foglio trovato.");
-              }
-              const sheetName = wb.SheetNames[0];
-              const rows=XLSX.utils.sheet_to_json(wb.Sheets[sheetName]);
-
-              if(!Array.isArray(rows)) {
-                throw new Error("Formato dati nel foglio Excel non valido.");
-              }
-
-              if(confirm('ATTENZIONE: Importando, sovrascriverai TUTTE le prenotazioni attuali per questa pagina. Confermi carica?')){
-                remove(ref(db,`${user.pageChoice}/prenotazioni`)).then(()=> {
-                  const updates = {};
-                  let rowErrors = 0;
-                  rows.forEach(r=>{
-                     const slotObj=slots.find(s=>(s.id===8?'Riserve':s.label)===r.Fascia);
-                     // Aggiunta validazione base sui campi obbligatori nell'Excel
-                     if(slotObj && r.Matricola && r.Nome) {
-                        // Usa push per generare una nuova chiave per ogni riga importata
-                        const newKey = push(ref(db,`${user.pageChoice}/prenotazioni`)).key;
-                        if (newKey) { // Assicurati che la chiave sia stata generata
-                           updates[newKey] = { name:r.Nome, matricola:r.Matricola, slot:slotObj.id };
-                         } else {
-                            console.warn("Impossibile generare chiave per riga importata:", r);
-                            rowErrors++; // Considera questo un errore di riga se la chiave non si genera (improbabile)
-                         }
-                     } else {
-                        console.warn("Riga Excel non valida o incompleta (richiede Fascia, Matricola, Nome):", r);
-                        rowErrors++;
-                     }
-                  });
-
-                  // Scrive i nuovi dati importati
-                  if (Object.keys(updates).length > 0) {
-                      set(ref(db,`${user.pageChoice}/prenotazioni`), updates)
-                      .then(() => {
-                         alert(`Importazione Excel completata con successo! ${rowErrors > 0 ? `Attenzione: ${rowErrors} righe con errori o incomplete non sono state importate.` : ''}`);
-                      })
-                      .catch(e => alert(`Errore durante il salvataggio dei dati importati: ${e.message}`));
-                  } else {
-                      alert(`Nessun dato valido trovato nel file Excel da importare. ${rowErrors > 0 ? `(${rowErrors} righe con errori nel formato)` : ''}`);
-                  }
-
-                }).catch(e => alert(`Errore durante la pulizia delle prenotazioni esistenti prima dell'importazione: ${e.message}`));
-            }
-            } catch (error) {
-                alert(`Errore durante la lettura del file Excel: ${error.message}. Assicurati che sia un file Excel valido (.xlsx) e abbia le colonne 'Fascia', 'Matricola', 'Nome'.`);
-            }
-            // Reset del valore dell'input file
-            e.target.value = null;
-          };
-          // Assicurati che ci sia un file prima di provare a leggerlo
-          if (e.target.files && e.target.files[0]) {
-             reader.readAsBinaryString(e.target.files[0]);
-          }
-        }
-
-
-       return { view, user, booking, slots, bookingsBySlot, seatsPerSlot, pageNames, texts, blocks, isAdmin, adminPass, remaining, mask,
-         register, login, logout, enterPage, loadBookings, confirmBook, adminLogin, exitAdmin, updatePageName, updateText,
-         updateBlock, updateAdminPass, removeBooking, resetAll, exportExcel, importExcel, handleFileUpload, focusNext, fileInput };
-      }
-   }).mount('#app');
- </script>
+    <script type="module" src="app.js"></script>
+</body>
+</html>

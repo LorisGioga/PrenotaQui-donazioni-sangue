@@ -1,0 +1,399 @@
+/* ================================================= */
+/* NUOVI STILI PER BARRA DI NAVIGAZIONE GLOBALE */
+/* ================================================= */
+p {
+  text-align: justify;
+}
+.testo-giustificato {
+  text-align: justify;
+}
+
+.global-header {
+    background: #000; /* Sfondo nero */
+    color: #fff;
+    padding: 10px 50px;
+    width: 100%;
+    /* Rimuovi la posizione fissa se non desideri che rimanga in alto durante lo scroll */
+    /* position: fixed; 
+    top: 0;
+    left: 0; */
+    z-index: 1000; 
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto; /* Centra il contenuto della barra */
+    display: flex;
+    align-items: center;
+}
+
+.header-logo {
+    height: 40px; /* Regola la dimensione del tuo logo */
+    margin-right: 15px;
+}
+
+.header-text {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+#app.landing.privacy-text {
+    text-align: justify; /* Questo giustifica il testo */
+    margin-top: 15px;
+    margin-bottom: 15px;
+    font-size: 1em;
+}
+/* ================================================= */
+/* 0. STILI BASE E RESET (aggiunto il padding al body) */
+/* ================================================= */
+/* ... (regole * e body esistenti) ... */
+
+body {
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    background: #ffffff;
+    display: flex;
+    justify-content: center;
+    flex-direction: column; /* Necessario per impilare l'header e il container */
+    padding-top: 0; /* Rimosso padding-top se l'header non è fisso */
+}
+
+.container {
+    max-width: 1200px;
+    width: 100%;
+    margin: 30px auto; 
+    padding: 30px; 
+    background: hsl(0, 0%, 100%);
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.privacy-text {
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+
+/* ... (tutti gli altri stili esistenti seguono qui) ... */
+
+/* Media Query: Assicurati che l'header sia reattivo */
+@media screen and (max-width: 700px) {
+    /* ... (regole esistenti) ... */
+    
+    .global-header {
+        padding: 10px 15px;
+    }
+    
+    .header-text {
+        font-size: 1em;
+    }
+}
+/* ================================================= */
+/* 0. STILI BASE E RESET */
+/* ================================================= */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    background: #ffffff;
+    display: flex;
+    justify-content: center;
+}
+
+.container {
+    max-width: 1200px;
+    width: 100%;
+    margin: 30px auto; /* Margine centrale ragionevole */
+    padding: 30px; 
+    background: hsl(0, 0%, 100%);
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* ================================================= */
+/* 1. STILI GENERALI PER I TAG (con margini corretti) */
+/* ================================================= */
+h1 {
+    font-size: 2.4em;
+    text-align: center;
+    margin-bottom: 100px; /* Correzione da 200px */
+}
+
+h2 {
+    font-size: 2.0em;
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px; /* Correzione da 300px */
+    color: red;
+}
+
+h3 {
+    font-size: 1.5em;
+    margin-top: 30px;
+    margin-bottom: 10px;
+}
+
+h4 {
+    font-size: 1.1em;
+    margin-top: 10px;
+    margin-bottom: 30px; /* Correzione da 200px */
+}
+
+/* Correzione Margini h5, h6, p per evitare disallineamenti negativi */
+h5, h6, p {
+    font-size: 1.1em;
+    text-align: left;
+    margin-top: 10px; 
+    margin-bottom: 10px;
+    width: 100%; 
+}
+
+/* ================================================= */
+/* 2. STILI SPECIFICI PER PAGINA (Sovrascrivono gli stili generali) */
+/* ================================================= */
+
+/* --- A. Vista LANDING --- */
+#app.landing .main-title {
+    color: #007bff; /* Blu diverso dal default */
+    font-weight: bold;
+    margin-bottom: 40px; /* Spazio vuoto specifico per la landing */
+}
+
+#app.landing .privacy-text {
+    text-align: left;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    font-size: 1em;
+}
+
+/* --- B. Vista AUTH/REGISTER --- */
+#app.auth .main-title, 
+#app.register .main-title {
+    color: #333;
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+/* --- C. Vista PAGE SELECT (Pagina 3) --- */
+#app.pageSelect .main-title {
+    color: #8e44ad; /* Viola */
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 30px; /* Spazio H1 corretto */
+}
+
+#app.pageSelect .top-nav {
+    /* La tua navigazione in questa vista */
+    margin-bottom: 20px; /* Correzione da 2000px */
+}
+
+#app.pageSelect h2 {
+    color: #2c3e50;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+/* --- D. Vista PAGE 1 / PAGE 2 (Prenotazione) --- */
+#app.page1 .main-title,
+#app.page2 .main-title {
+    color: #27ae60; /* Verde */
+    font-size: 2.2em;
+    margin-bottom: 10px;
+}
+
+#app.page1 .session-title,
+#app.page2 .session-title {
+    color: #27ae60; 
+    text-align: left;
+    font-size: 1.8em;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #27ae60;
+}
+
+/* ================================================= */
+/* 3. STILI COMPONENTI (Validi per tutte le pagine) */
+/* ================================================= */
+
+.landing-buttons, 
+.actions,
+.admin-actions { 
+    margin-top: 50px; 
+}
+
+button, 
+input, 
+select { 
+    font-family: inherit; 
+}
+
+button { 
+    padding: 10px 20px; 
+    margin: 5px; 
+    margin-top: 00px;
+    border: none; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    background: #000; 
+    color: #fff; 
+}
+
+button.reset { 
+    background: red; 
+    color: #fff; 
+    float: right; 
+}
+
+/* ... il resto dei tuoi stili per i bottoni, input, table, media query ... */
+
+button.exit { 
+    background: red; 
+    margin-top: 00px;
+    margin-bottom: 100px;
+    color: #fff; 
+}
+
+button.admin-exit { 
+    background: orange; 
+    color: #fff; 
+}
+
+input[type="text"], 
+input[type="email"], 
+input[type="password"], 
+select {
+    width: 97%; 
+    padding: 15px; 
+    margin: 5px 0; 
+    background: rgb(232,229,229);
+    border: 1px solid #131313; 
+    border-radius: 5px; 
+    font-size: 1.2em;
+}
+
+nav.top-nav { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    background: #fff; 
+    padding: 10px; 
+    border-radius: 5px; 
+    margin-bottom: 20px; 
+}
+
+.admin-booking-fields input { 
+    width: 48%; 
+    display: inline-block; 
+    margin-right: 4%; 
+}
+
+.admin-actions { 
+    display: flex; 
+    gap: 10px; 
+    margin-top: 00px; 
+}
+
+.admin-actions button { 
+    flex: 1; 
+}
+
+table { 
+    width: 100%; 
+    border-spacing: 5px; 
+    border: 1px solid #ddd; 
+    margin-top: 20px; 
+}
+
+th, 
+td { 
+    padding: 8px; 
+    border: 1px solid #ddd; 
+    vertical-align: top; 
+    text-align: center; 
+}
+
+th { 
+    font-size: 1.2em; 
+    letter-spacing: 1px; 
+    padding: 10px; 
+}
+
+tr:nth-child(even) { 
+    background: #4fbefa; 
+}
+
+tr:nth-child(odd) { 
+    background: #48abcc; 
+}
+
+.prenotazione-nome { 
+    text-align: left; 
+    display: flex; 
+    font-size: 0.9em;
+    justify-content: space-between; 
+    align-items: center; 
+}
+
+.prenotazione-nome button { 
+    padding: 3px 6px; 
+    font-size: 0.6em; 
+}
+
+.page-name-input, 
+.text-input { 
+    width: 100%; 
+    display: block; 
+    font-size: 0.9em;
+    padding: 15px; 
+    margin: 5px 0; 
+}
+
+.admin-settings label {
+    display: block;
+    margin-bottom: 15px;
+}
+
+/* NUOVE REGOLE PER GESTIONE DINAMICA PAGINE */
+.page-management-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.page-management-row label {
+    flex-grow: 1;
+    margin-bottom: 0;
+}
+.page-management-row input.page-name-input {
+    flex-grow: 2;
+    margin: 0;
+}
+.page-management-row button {
+    flex-shrink: 0;
+}
+
+@media screen and (max-width: 700px) {
+    .container { 
+        padding: 5px; 
+    }
+    
+    input, 
+    select { 
+        padding: 10px; 
+        width: 90%; 
+        font-size: 0.85em; 
+    }
+    
+    th, 
+    td, 
+    button { 
+        font-size: 0.85em; 
+    }
+}
