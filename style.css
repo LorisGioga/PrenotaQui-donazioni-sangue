@@ -315,6 +315,21 @@ tr:nth-child(odd) {
     margin-bottom: 15px;
 }
 
+.admin-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.admin-section-header h3 {
+    margin: 0;
+}
+
+.admin-section-header .admin-exit {
+    margin: 0;
+}
+
 .page-management-row {
     display: flex;
     align-items: center;
