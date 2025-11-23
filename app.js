@@ -46,12 +46,10 @@ createApp({
     const fileInput = vueRef(null);
     const adminPass = vueRef('');
 
-    // ===================================
-    // SISTEMA MODALE PERSONALIZZATI
-    // ===================================
+    // SISTEMA MODALE
     const modal = reactive({
       show: false,
-      type: 'alert', // 'alert', 'confirm', 'prompt'
+      type: 'alert',
       title: '',
       message: '',
       input: '',
@@ -109,9 +107,7 @@ createApp({
       modal.input = '';
     }
 
-    // ===================================
     // INIZIALIZZAZIONI DB
-    // ===================================
     get(ref(db, 'adminPass')).then(s => { if (!s.exists()) set(ref(db, 'adminPass'), 'admin123'); });
     get(ref(db, 'h4Texts')).then(s => { if (!s.exists()) set(ref(db, 'h4Texts'), texts); });
     
@@ -204,12 +200,12 @@ createApp({
           matricola: user.matricola,
           email: user.email
         });
-        await showAlert('Registrazione effettuata con successo! Ora puoi procedere.', 'Successo');
+        await showAlert('Registrazione effettuata con successo! Ora puoi procedere.');
         view.value = 'pageSelect';
         loadBookings();
       } catch (error) {
         console.error("Errore registrazione:", error);
-        await showAlert(`Errore durante la registrazione: ${error.message}`, 'Errore');
+        await showAlert(`Errore durante la registrazione: ${error.message}`);
       }
     }
 
@@ -222,23 +218,23 @@ createApp({
         
         if (snap.exists()) {
           Object.assign(user, snap.val());
-          await showAlert('Accesso effettuato con successo!', 'Successo');
+          await showAlert('Accesso effettuato con successo!');
           view.value = 'pageSelect';
           loadBookings();
         } else {
           console.warn("Utente autenticato (Auth) ma dati profilo mancanti nel DB:", cred.user.uid);
-          await showAlert('Accesso effettuato, ma dati profilo non trovati nel database. Contatta l\'amministrazione.', 'Attenzione');
+          await showAlert('Accesso effettuato, ma dati profilo non trovati nel database. Contatta l\'amministrazione.');
           signOut(auth);
         }
       } catch (error) {
         console.error("Errore login:", error);
-        await showAlert(`Errore durante l\'accesso: ${error.message}`, 'Errore');
+        await showAlert(`Errore durante l\'accesso: ${error.message}`);
       }
     }
 
     async function validateAuthFields() {
       if (!user.lastName || !user.firstName || !user.matricola || !user.email || !user.password) {
-        await showAlert('Per favore, compila tutti i campi (Cognome, Nome, Matricola, E-mail, Password) per procedere.', 'Campi mancanti');
+        await showAlert('Per favore, compila tutti i campi (Cognome, Nome, Matricola, E-mail, Password) per procedere.');
         return false;
       }
       return true;
@@ -249,22 +245,22 @@ createApp({
         console.log("Utente disconnesso");
       }).catch((error) => {
         console.error("Errore durante la disconnessione:", error);
-        showAlert("Si è verificato un errore durante la disconnessione.", 'Errore');
+        showAlert("Si è verificato un errore durante la disconnessione.");
       });
     }
 
     async function enterPage() {
       if (!auth.currentUser) {
-        await showAlert("Devi accedere per prenotare.", 'Accesso richiesto');
+        await showAlert("Devi accedere per prenotare.");
         view.value = 'auth';
         return;
       }
       if (!Object.keys(pageNames).includes(user.pageChoice)) {
-        await showAlert("Selezione pagina non valida. Scegli una pagina disponibile.", 'Errore');
+        await showAlert("Selezione pagina non valida. Scegli una pagina disponibile.");
         return;
       }
       if (blocks[user.pageChoice]) {
-        await showAlert('Al momento la pagina di prenotazione è bloccata. Sarai avvisato quando sarà disponibile.', 'Pagina bloccata');
+        await showAlert('Al momento la pagina di prenotazione è bloccata. Sarai avvisato quando sarà disponibile.');
         return;
       }
       view.value = user.pageChoice; 
@@ -281,18 +277,18 @@ createApp({
 
     async function book() {
       if (!auth.currentUser) {
-        await showAlert("Devi accedere per prenotare.", 'Accesso richiesto');
+        await showAlert("Devi accedere per prenotare.");
         view.value = 'auth';
         return;
       }
       if (booking.slot==null) {
-        await showAlert('Seleziona fascia', 'Attenzione');
+        await showAlert('Seleziona fascia');
         return;
       }
 
       const matricolaToCheck = isAdmin.value ? booking.matricola : user.matricola;
       if (!matricolaToCheck) {
-        await showAlert('Matricola mancante', 'Errore');
+        await showAlert('Matricola mancante');
         return;
       }
 
@@ -305,14 +301,14 @@ createApp({
             booking.name = '';
             booking.matricola = '';
             booking.slot = null;
-            await showAlert(`Matricola già prenotata in un altro giorno (${pageNames[p]}).`, 'Prenotazione esistente');
+            await showAlert(`Matricola già prenotata in un altro giorno (${pageNames[p]}).`);
             return;
           }
         }
 
         const nome = isAdmin.value ? booking.name : `${user.lastName} ${user.firstName}`;
         if (!nome) {
-          await showAlert('Nome/Cognome mancante per la prenotazione', 'Errore');
+          await showAlert('Nome/Cognome mancante per la prenotazione');
           return;
         }
 
@@ -320,7 +316,7 @@ createApp({
         const maxSeats = booking.slot === 8 ? 9999 : seatsPerSlot.value;
 
         if (currentSlotBookings.length >= maxSeats) {
-          await showAlert(`Posti esauriti per la fascia selezionata (${slots.find(s => s.id === booking.slot).label}).`, 'Posti esauriti');
+          await showAlert(`Posti esauriti per la fascia selezionata (${slots.find(s => s.id === booking.slot).label}).`);
           return;
         }
 
@@ -334,51 +330,51 @@ createApp({
         booking.matricola = '';
         booking.slot = null;
 
-        await showAlert('Prenotazione registrata con successo!', 'Successo');
+        await showAlert('Prenotazione registrata con successo!');
 
       } catch (error) {
         console.error("Errore durante la prenotazione:", error);
-        await showAlert(`Si è verificato un errore: ${error.message}`, 'Errore');
+        await showAlert(`Si è verificato un errore: ${error.message}`);
       }
     }
 
     async function confirmBook() {
       if (!auth.currentUser) {
-        await showAlert("Devi accedere per prenotare.", 'Accesso richiesto');
+        await showAlert("Devi accedere per prenotare.");
         view.value = 'auth';
         return;
       }
-      const confirmed = await showConfirm('Confermi la prenotazione per la fascia selezionata?', 'Conferma prenotazione');
+      const confirmed = await showConfirm('Confermi la prenotazione per la fascia selezionata?');
       if (confirmed) book();
     }
 
     async function adminLogin() {
-      const p = await showPrompt('Inserisci la password admin:', 'Accesso Admin');
+      const p = await showPrompt('Inserisci la password admin:');
       if (!p) return;
       
       try {
         const s = await get(ref(db,'adminPass'));
         if(s.exists() && s.val()===p) {
           isAdmin.value=true;
-          await showAlert('Accesso Admin effettuato', 'Successo');
+          await showAlert('Accesso Admin effettuato');
         } else {
-          await showAlert('Password admin errata', 'Errore');
+          await showAlert('Password admin errata');
         }
       } catch (e) {
         console.error("Errore lettura password admin:", e);
-        await showAlert("Errore nel verificare la password admin.", 'Errore');
+        await showAlert("Errore nel verificare la password admin.");
       }
     }
 
     async function exitAdmin() { 
       isAdmin.value=false; 
-      await showAlert('Uscito Area Riservata', 'Info'); 
+      await showAlert('Uscito Area Riservata'); 
     }
 
     async function addPage() {
       const name = newPageName.value.trim();
       if (!name) {
-        await showAlert('Inserisci un nome per la nuova pagina.', 'Errore');
+        await showAlert('Inserisci un nome per la nuova pagina.');
         return;
       }
       
@@ -390,25 +386,22 @@ createApp({
       
       try {
         await update(ref(db), updates);
-        await showAlert(`Pagina "${name}" aggiunta con successo.`, 'Successo');
+        await showAlert(`Pagina "${name}" aggiunta con successo.`);
         newPageName.value = '';
       } catch (e) {
         console.error("Errore addPage:", e);
-        await showAlert('Errore durante l\'aggiunta della pagina', 'Errore');
+        await showAlert('Errore durante l\'aggiunta della pagina');
       }
     }
     
     async function removePage(key) {
       if(Object.keys(pageNames).length <= 1) {
-        await showAlert('Non puoi eliminare l\'ultima pagina disponibile.', 'Errore');
+        await showAlert('Non puoi eliminare l\'ultima pagina disponibile.');
         return;
       }
       
       const pageName = pageNames[key];
-      const confirmed = await showConfirm(
-        `ATTENZIONE: Eliminare la pagina "${pageName}" cancellerà TUTTE le prenotazioni ad essa associate. Confermi?`,
-        'Eliminazione pagina'
-      );
+      const confirmed = await showConfirm(`ATTENZIONE: Eliminare la pagina "${pageName}" cancellerà TUTTE le prenotazioni ad essa associate. Confermi?`);
       
       if(confirmed){
         delete pageNames[key];
@@ -418,7 +411,7 @@ createApp({
           await remove(ref(db, `pageNames/${key}`));
           await remove(ref(db, `blocks/${key}`));
           await remove(ref(db, key));
-          await showAlert(`Pagina "${pageName}" eliminata con successo.`, 'Successo');
+          await showAlert(`Pagina "${pageName}" eliminata con successo.`);
           
           if (user.pageChoice === key) {
             const remainingKeys = Object.keys(pageNames);
@@ -426,7 +419,7 @@ createApp({
           }
         } catch (e) {
           console.error("Errore removePage:", e);
-          await showAlert(`Errore durante l'eliminazione della pagina: ${e.message}`, 'Errore');
+          await showAlert(`Errore durante l'eliminazione della pagina: ${e.message}`);
           location.reload();
         }
       }
@@ -434,7 +427,7 @@ createApp({
 
     async function updatePageName(key, newName) { 
       if (newName.trim() === '') {
-        await showAlert('Il nome della pagina non può essere vuoto.', 'Errore');
+        await showAlert('Il nome della pagina non può essere vuoto.');
         return;
       }
       try {
@@ -459,22 +452,22 @@ createApp({
     async function updateSeatsPerSlot() {
       const newValue = parseInt(seatsPerSlot.value);
       if (isNaN(newValue) || newValue < 1 || newValue > 20) {
-        await showAlert('Inserisci un numero valido tra 1 e 20', 'Errore');
+        await showAlert('Inserisci un numero valido tra 1 e 20');
         const s = await get(ref(db, 'seatsPerSlot'));
         if (s.exists()) seatsPerSlot.value = s.val();
         return;
       }
       try {
         await set(ref(db, 'seatsPerSlot'), newValue);
-        await showAlert('Numero posti per fascia aggiornato con successo!', 'Successo');
+        await showAlert('Numero posti per fascia aggiornato con successo!');
       } catch (e) {
         console.error("Errore updateSeatsPerSlot:", e);
-        await showAlert('Errore durante l\'aggiornamento', 'Errore');
+        await showAlert('Errore durante l\'aggiornamento');
       }
     }
     
     async function removeBooking(key) {
-      const confirmed = await showConfirm('Confermi cancellazione prenotazione?', 'Conferma');
+      const confirmed = await showConfirm('Confermi cancellazione prenotazione?');
       if(confirmed){
         try {
           await remove(ref(db,`${user.pageChoice}/prenotazioni/${key}`));
@@ -485,10 +478,7 @@ createApp({
     }
     
     async function resetAll() {
-      const confirmed = await showConfirm(
-        'ATTENZIONE: Questa operazione cancellerà TUTTE le prenotazioni per questa pagina. Confermi reset?',
-        'Reset prenotazioni'
-      );
+      const confirmed = await showConfirm('ATTENZIONE: Questa operazione cancellerà TUTTE le prenotazioni per questa pagina. Confermi reset?');
       if(confirmed){
         try {
           await remove(ref(db,`${user.pageChoice}/prenotazioni`));
@@ -530,10 +520,7 @@ createApp({
             throw new Error("Formato dati nel foglio Excel non valido.");
           }
 
-          const confirmed = await showConfirm(
-            'ATTENZIONE: Importando, sovrascriverai TUTTE le prenotazioni attuali per questa pagina. Confermi carica?',
-            'Importazione Excel'
-          );
+          const confirmed = await showConfirm('ATTENZIONE: Importando, sovrascriverai TUTTE le prenotazioni attuali per questa pagina. Confermi carica?');
           
           if(confirmed){
             await remove(ref(db,`${user.pageChoice}/prenotazioni`));
@@ -557,22 +544,13 @@ createApp({
 
             if (Object.keys(updates).length > 0) {
               await set(ref(db,`${user.pageChoice}/prenotazioni`), updates);
-              await showAlert(
-                `Importazione Excel completata con successo! ${rowErrors > 0 ? `Attenzione: ${rowErrors} righe con errori o incomplete non sono state importate.` : ''}`,
-                'Successo'
-              );
+              await showAlert(`Importazione Excel completata con successo! ${rowErrors > 0 ? `Attenzione: ${rowErrors} righe con errori o incomplete non sono state importate.` : ''}`);
             } else {
-              await showAlert(
-                `Nessun dato valido trovato nel file Excel da importare. ${rowErrors > 0 ? `(${rowErrors} righe con errori nel formato)` : ''}`,
-                'Attenzione'
-              );
+              await showAlert(`Nessun dato valido trovato nel file Excel da importare. ${rowErrors > 0 ? `(${rowErrors} righe con errori nel formato)` : ''}`);
             }
           }
         } catch (error) {
-          await showAlert(
-            `Errore durante la lettura del file Excel: ${error.message}. Assicurati che sia un file Excel valido (.xlsx) e abbia le colonne 'Fascia', 'Matricola', 'Nome'.`,
-            'Errore'
-          );
+          await showAlert(`Errore durante la lettura del file Excel: ${error.message}. Assicurati che sia un file Excel valido (.xlsx) e abbia le colonne 'Fascia', 'Matricola', 'Nome'.`);
         }
         e.target.value = null;
       };
@@ -587,7 +565,18 @@ createApp({
       updatePageName, updateText, updateBlock, updateAdminPass, updateSeatsPerSlot, removeBooking, resetAll, exportExcel, 
       importExcel, handleFileUpload, focusNext, fileInput, 
       addPage, removePage,
-      modal, modalConfirm, modalCancel // Aggiunti per il sistema modale
+      modal, modalConfirm, modalCancel
     };
   }
-}).mount('#app');
+});
+
+// Monta l'app principale
+vueApp.mount('#app');
+
+// Crea app separata per il modale
+createApp({
+  setup() {
+    // Condividi lo stesso oggetto modal
+    return vueApp._instance.setupState;
+  }
+}).mount('#modal-container');
