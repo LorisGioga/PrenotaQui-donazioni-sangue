@@ -568,15 +568,4 @@ createApp({
       modal, modalConfirm, modalCancel
     };
   }
-});
-
-// Monta l'app principale
-vueApp.mount('#app');
-
-// Crea app separata per il modale
-createApp({
-  setup() {
-    // Condividi lo stesso oggetto modal
-    return vueApp._instance.setupState;
-  }
-}).mount('#modal-container');
+}).mount('#app');
