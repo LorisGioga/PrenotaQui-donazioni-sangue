@@ -108,7 +108,7 @@ createApp({
     }
 
     // INIZIALIZZAZIONI DB
-    get(ref(db, 'adminPass')).then(s => { if (!s.exists()) set(ref(db, 'adminPass'), 'admin123'); });
+    // Rimosso il default 'admin123' per sicurezza - imposta la password manualmente su Firebase
     get(ref(db, 'h4Texts')).then(s => { if (!s.exists()) set(ref(db, 'h4Texts'), texts); });
     
     get(ref(db, 'pageNames')).then(s => { 
