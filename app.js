@@ -37,6 +37,9 @@ createApp({
     const pageNames = reactive({}); 
     const blocks = reactive({});
     const newPageName = vueRef('');
+    const idoneiList = reactive([]);
+    const idoneiTitle = vueRef('Elenco Persone Idonee Pangea');
+    const fileInputIdonei = vueRef(null);
     
     const texts = reactive({ 
       landing:'Se sei un nuovo donatore o non fai parte di questo gruppo, contatta il N. 333.78.36.256 o uno del Direttivo, ci penseremo noi ad inserirti nella lista.', 
@@ -108,11 +111,10 @@ createApp({
     }
 
     // INIZIALIZZAZIONI DB
-    // Rimosso il default 'admin123' per sicurezza - imposta la password manualmente su Firebase
     get(ref(db, 'h4Texts')).then(s => { if (!s.exists()) set(ref(db, 'h4Texts'), texts); });
     
     get(ref(db, 'pageNames')).then(s => { 
-      if (!s.exists() || Object.keys(s.val()).length === 0) {
+      if (!s.exists() || Object.keys(s.val() || {}).length === 0) {
         set(ref(db, 'pageNames'), { page1: 'Pagina 1' });
         set(ref(db, 'blocks/page1'), false);
         user.pageChoice = 'page1';
@@ -171,11 +173,30 @@ createApp({
         seatsPerSlot.value = s.val();
       }
     });
+    
+    onValue(ref(db, 'idoneiList'), snap => {
+      if (snap.exists()) {
+        const data = snap.val();
+        idoneiList.splice(0, idoneiList.length);
+        if (Array.isArray(data)) {
+          idoneiList.push(...data);
+        }
+      } else {
+        idoneiList.splice(0, idoneiList.length);
+      }
+    });
+    
+    onValue(ref(db, 'idoneiTitle'), snap => {
+      if (snap.exists()) {
+        idoneiTitle.value = snap.val();
+      }
+    });
 
     const remaining = slot => seatsPerSlot.value - (bookingsBySlot[slot.id]?.length || 0);
     
     const mask = (name, matricola) => {
-      if (user.matricola && matricola === user.matricola) {
+      if (!name) return '';
+      if (user.matricola && String(matricola) === String(user.matricola)) {
         return name;
       }
       return name.split(' ').map(p => p.slice(0,2)+'..').join(' ');
@@ -201,7 +222,7 @@ createApp({
           email: user.email
         });
         await showAlert('Registrazione effettuata con successo! Ora puoi procedere.');
-        view.value = 'pageSelect';
+        view.value = 'idoneiPage';
         loadBookings();
       } catch (error) {
         console.error("Errore registrazione:", error);
@@ -219,7 +240,7 @@ createApp({
         if (snap.exists()) {
           Object.assign(user, snap.val());
           await showAlert('Accesso effettuato con successo!');
-          view.value = 'pageSelect';
+          view.value = 'idoneiPage';
           loadBookings();
         } else {
           console.warn("Utente autenticato (Auth) ma dati profilo mancanti nel DB:", cred.user.uid);
@@ -559,12 +580,122 @@ createApp({
       }
     }
 
+    function importExcelIdonei() {
+      fileInputIdonei.value.click();
+    }
+
+    async function handleFileUploadIdonei(e) {
+      const reader = new FileReader();
+      reader.onload = async evt => {
+        try {
+          const wb = XLSX.read(evt.target.result, {type:'binary'});
+          if (!wb.SheetNames || wb.SheetNames.length === 0) {
+            throw new Error("File Excel non valido: nessun foglio trovato.");
+          }
+          const sheetName = wb.SheetNames[0];
+          const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName]);
+
+          if(!Array.isArray(rows)) {
+            throw new Error("Formato dati nel foglio Excel non valido.");
+          }
+
+          const newList = [];
+          let rowErrors = 0;
+          
+          rows.forEach(r => {
+            // Supporta sia formato "Matricola, Cognome, Nome" che "Matricola, Nome" (dove Nome = "COGNOME NOME")
+            if (r.Matricola && r.Nome) {
+              const nomeCompleto = String(r.Nome).trim();
+              const parts = nomeCompleto.split(' ');
+              
+              if (r.Cognome) {
+                // Formato con 3 colonne separate
+                newList.push({
+                  matricola: String(r.Matricola),
+                  cognome: String(r.Cognome),
+                  nome: String(r.Nome)
+                });
+              } else if (parts.length >= 2) {
+                // Formato con 2 colonne: Nome contiene "COGNOME NOME"
+                const cognome = parts[0];
+                const nome = parts.slice(1).join(' ');
+                newList.push({
+                  matricola: String(r.Matricola),
+                  cognome: cognome,
+                  nome: nome
+                });
+              } else {
+                console.warn("Riga Excel: nome non separabile in cognome/nome:", r);
+                rowErrors++;
+              }
+            } else {
+              console.warn("Riga Excel non valida (richiede Matricola e Nome):", r);
+              rowErrors++;
+            }
+          });
+
+          if (newList.length > 0) {
+            await set(ref(db, 'idoneiList'), newList);
+            await showAlert(`Importazione completata! ${newList.length} persone idonee caricate. ${rowErrors > 0 ? `Attenzione: ${rowErrors} righe con errori non importate.` : ''}`);
+          } else {
+            await showAlert(`Nessun dato valido trovato nel file Excel. ${rowErrors > 0 ? `(${rowErrors} righe con errori nel formato)` : ''} Assicurati che il file abbia almeno le colonne: Matricola, Nome.`);
+          }
+        } catch (error) {
+          await showAlert(`Errore durante la lettura del file Excel: ${error.message}. Verifica che sia un file .xlsx valido.`);
+        }
+        e.target.value = null;
+      };
+      if (e.target.files && e.target.files[0]) {
+        reader.readAsBinaryString(e.target.files[0]);
+      }
+    }
+
+    async function updateIdoneiTitle() {
+      const nuovoTitolo = idoneiTitle.value.trim();
+      if (nuovoTitolo === '') {
+        await showAlert('Il titolo non può essere vuoto.');
+        // Ripristina il valore precedente
+        const s = await get(ref(db, 'idoneiTitle'));
+        if (s.exists()) {
+          idoneiTitle.value = s.val();
+        }
+        return;
+      }
+      try {
+        await set(ref(db, 'idoneiTitle'), nuovoTitolo);
+        await showAlert('Titolo aggiornato con successo!');
+      } catch (e) {
+        console.error("Errore updateIdoneiTitle:", e);
+        await showAlert('Errore durante l\'aggiornamento del titolo');
+        // In caso di errore, ripristina il valore da Firebase
+        const s = await get(ref(db, 'idoneiTitle'));
+        if (s.exists()) {
+          idoneiTitle.value = s.val();
+        }
+      }
+    }
+
+    async function resetIdoneiList() {
+      const confirmed = await showConfirm('ATTENZIONE: Questa operazione cancellerà l\'intera lista delle persone idonee. Confermi?');
+      if(confirmed){
+        try {
+          await remove(ref(db, 'idoneiList'));
+          await showAlert('Lista persone idonee cancellata.');
+        } catch (e) {
+          console.error("Errore resetIdoneiList:", e);
+          await showAlert('Errore durante la cancellazione della lista');
+        }
+      }
+    }
+
     return { 
       view, user, booking, slots, bookingsBySlot, seatsPerSlot, pageNames, texts, blocks, isAdmin, adminPass, newPageName,
+      idoneiList, idoneiTitle, fileInputIdonei,
       remaining, mask, register, login, logout, enterPage, loadBookings, confirmBook, adminLogin, exitAdmin, 
       updatePageName, updateText, updateBlock, updateAdminPass, updateSeatsPerSlot, removeBooking, resetAll, exportExcel, 
       importExcel, handleFileUpload, focusNext, fileInput, 
       addPage, removePage,
+      importExcelIdonei, handleFileUploadIdonei, updateIdoneiTitle, resetIdoneiList,
       modal, modalConfirm, modalCancel
     };
   }
