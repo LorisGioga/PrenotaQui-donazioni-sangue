@@ -41,7 +41,14 @@
             <h1 class="main-title">Inserisci le tue credenziali</h1>
             <h2></h2>
             <text></text>
-            <h5>Si prega di compilare tutti i campi richiesti. L'omissione della compilazione, anche solo di uno, impedisce l'accesso al programma.</h5>
+            <h5 v-if="view==='register'">
+                <strong>PRIMA REGISTRAZIONE:</strong> Compila tutti i campi richiesti (Cognome, Nome, Matricola, E-mail, Password).<br>
+                <strong>ACCESSI SUCCESSIVI:</strong> Basterà inserire solo E-mail e Password.
+            </h5>
+            <h5 v-else>
+                Inserisci la tua E-mail e Password per accedere.<br>
+                <small style="color:#696767;">Non serve compilare Cognome, Nome e Matricola per il login.</small>
+            </h5>
             <div class="form-container">
                 <input type="text" v-model="user.lastName" placeholder="Cognome" required
                   @keydown.tab.prevent="focusNext($event)"
@@ -65,10 +72,12 @@
         </div>
 
         <!-- NUOVA PAGINA IDONEI (dopo login) -->
-        <div v-else-if="view==='idoneiPage'">
+        <div v-else-if="view==='idoneiPage'" :key="'idonei-' + idoneiList.length">
             <h1 class="main-title">{{ idoneiTitle }}</h1>
             <nav class="top-nav">
-                <div></div>
+                <div>
+                    <button @click="forceReloadIdonei()" style="background:#28a745; margin:0;">🔄 Aggiorna Lista</button>
+                </div>
                 <div>
                     <button @click="view='pageSelect'">Avanti</button>
                     <button @click="logout()">Indietro</button>

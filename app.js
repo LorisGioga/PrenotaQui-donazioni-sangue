@@ -1,10 +1,17 @@
-// programma fire base: FIDAS SAN GIUSTO CAN 2
+// ===================================================================
+//Programma Prenotazioni PrenotaQui 19/01/2026
+// ===================================================================
+// 1. Importazioni Firebase e Vue.js
+// ===================================================================
+//
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js';
 import { getDatabase, ref, push, onValue, set, get, child, remove, update } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js';
 
 const { createApp, reactive, ref: vueRef } = Vue;
-
+//=====================================================================
+// 2. Configurazione Firebase: FIDAS SAN GIUSTO CAN 2
+//=====================================================================
 const firebaseConfig = {
   apiKey: "AIzaSyAoToelGIbZy2w_Kk0u4HDFIB56AuQNwRU",
   authDomain: "fidas-san-giusto-can-2.firebaseapp.com",
@@ -15,21 +22,32 @@ const firebaseConfig = {
   appId: "1:963864891985:web:33161373f6712197751e70"
 };
 
+//
+// 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
-
+//
+//=====================================================================
+// 3. Applicazione Vue.js
+//=====================================================================
 createApp({
   setup() {
+    
+    //=====================================================================
+    // 3.1 VARIABILI REATTIVE PRINCIPALI E FUNZIONI
+    //=====================================================================
+    // 
+    
     const view = vueRef('landing');
     const seatsPerSlot = vueRef(6);
     const user = reactive({ lastName:'', firstName:'', matricola:'', email:'', password:'', pageChoice:'page1' });
     const booking = reactive({ matricola:'', name:'', slot: null });
     const slots = [
-      { id:0, label:'07:50 – 08:05' }, { id:1, label:'08:10 – 08:30' },
-      { id:2, label:'08:35 – 08:55' }, { id:3, label:'09:00 – 09:20' },
-      { id:4, label:'09:25 – 09:45' }, { id:5, label:'09:50 – 10:10' },
-      { id:6, label:'10:15 – 10:35' }, { id:7, label:'10:40 – 11:00' },
+      { id:0, label:'FASCIA 1:\u00A0 07:50 – 08:05' }, { id:1, label:'FASCIA 2:\u00A0 08:10 – 08:30' },
+      { id:2, label:'FASCIA 3:\u00A0 08:35 – 08:55' }, { id:3, label:'FASCIA 4:\u00A0 09:00 – 09:20' },
+      { id:4, label:'FASCIA 5: \u00A009:25 – 09:45' }, { id:5, label:'FASCIA 6:\u00A0 09:50 – 10:10' },
+      { id:6, label:'FASCIA 7:\u00A0 10:15 – 10:35' }, { id:7, label:'FASCIA 8: \u00A010:40 – 11:00' },
       { id:8, label:'Riserve' }
     ];
     const bookingsBySlot = reactive({});
@@ -134,6 +152,8 @@ createApp({
       }
     });
 
+    const isRegistering = vueRef(false);
+
     onAuthStateChanged(auth, u => {
       if (u) {
         get(child(ref(db), `users/${u.uid}`))
@@ -145,7 +165,10 @@ createApp({
               }
               console.log("Dati utente caricati all'avvio:", user);
             } else {
-              console.warn("Utente autenticato (Auth) ma dati profilo mancanti nel DB:", u.uid);
+              // Se stiamo registrando, non disconnettere
+              if (!isRegistering.value) {
+                console.warn("Utente autenticato (Auth) ma dati profilo mancanti nel DB:", u.uid);
+              }
             }
             console.log("Utente autenticato rilevato. Rimango sulla landing page (o vista corrente).");
           })
@@ -175,12 +198,12 @@ createApp({
     });
     
     onValue(ref(db, 'idoneiList'), snap => {
-      if (snap.exists()) {
-        const data = snap.val();
-        idoneiList.splice(0, idoneiList.length);
-        if (Array.isArray(data)) {
-          idoneiList.push(...data);
-        }
+      const data = snap.val();
+      if (data && Array.isArray(data)) {
+        idoneiList.splice(0, idoneiList.length, ...data);
+      } else if (data && typeof data === 'object') {
+        const arr = Object.values(data);
+        idoneiList.splice(0, idoneiList.length, ...arr);
       } else {
         idoneiList.splice(0, idoneiList.length);
       }
@@ -204,6 +227,7 @@ createApp({
 
     function focusNext(e) {
       const form = e.target.form;
+      if (!form) return; // Esci se non c'è un form
       const idx = Array.prototype.indexOf.call(form, e.target);
       if (idx > -1 && idx + 1 < form.elements.length) {
         form.elements[idx + 1]?.focus();
@@ -214,24 +238,60 @@ createApp({
       if (!validateAuthFields()) return;
 
       try {
+        isRegistering.value = true;
+        
         const cred = await createUserWithEmailAndPassword(auth, user.email, user.password);
+        
+        // Aspetta che Firebase aggiorni l'autenticazione
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
         await set(ref(db, `users/${cred.user.uid}`), {
           lastName: user.lastName,
           firstName: user.firstName,
           matricola: user.matricola,
           email: user.email
         });
+        
+        Object.assign(user, {
+          lastName: user.lastName,
+          firstName: user.firstName,
+          matricola: user.matricola,
+          email: user.email
+        });
+        
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        isRegistering.value = false;
+        
         await showAlert('Registrazione effettuata con successo! Ora puoi procedere.');
         view.value = 'idoneiPage';
-        loadBookings();
+        
       } catch (error) {
+        isRegistering.value = false;
         console.error("Errore registrazione:", error);
         await showAlert(`Errore durante la registrazione: ${error.message}`);
       }
     }
+    
+    function forceReloadIdonei() {
+      get(ref(db, 'idoneiList')).then(snap => {
+        const data = snap.val();
+        if (data && Array.isArray(data)) {
+          idoneiList.splice(0, idoneiList.length, ...data);
+        } else if (data && typeof data === 'object') {
+          const arr = Object.values(data);
+          idoneiList.splice(0, idoneiList.length, ...arr);
+        }
+        showAlert(`Lista aggiornata! ${idoneiList.length} persone caricate.`);
+      });
+    }
 
     async function login() {
-      if (!validateAuthFields()) return;
+      // Per il login servono SOLO email e password
+      if (!user.email || !user.password) {
+        await showAlert('Per favore, inserisci E-mail e Password per accedere.');
+        return;
+      }
 
       try {
         const cred = await signInWithEmailAndPassword(auth, user.email, user.password);
@@ -241,7 +301,6 @@ createApp({
           Object.assign(user, snap.val());
           await showAlert('Accesso effettuato con successo!');
           view.value = 'idoneiPage';
-          loadBookings();
         } else {
           console.warn("Utente autenticato (Auth) ma dati profilo mancanti nel DB:", cred.user.uid);
           await showAlert('Accesso effettuato, ma dati profilo non trovati nel database. Contatta l\'amministrazione.');
@@ -254,8 +313,9 @@ createApp({
     }
 
     async function validateAuthFields() {
+      // Per la registrazione servono TUTTI i campi
       if (!user.lastName || !user.firstName || !user.matricola || !user.email || !user.password) {
-        await showAlert('Per favore, compila tutti i campi (Cognome, Nome, Matricola, E-mail, Password) per procedere.');
+        await showAlert('Per favore, compila tutti i campi (Cognome, Nome, Matricola, E-mail, Password) per registrarti.');
         return false;
       }
       return true;
@@ -690,12 +750,12 @@ createApp({
 
     return { 
       view, user, booking, slots, bookingsBySlot, seatsPerSlot, pageNames, texts, blocks, isAdmin, adminPass, newPageName,
-      idoneiList, idoneiTitle, fileInputIdonei,
+      idoneiList, idoneiTitle, fileInputIdonei, isRegistering,
       remaining, mask, register, login, logout, enterPage, loadBookings, confirmBook, adminLogin, exitAdmin, 
       updatePageName, updateText, updateBlock, updateAdminPass, updateSeatsPerSlot, removeBooking, resetAll, exportExcel, 
       importExcel, handleFileUpload, focusNext, fileInput, 
       addPage, removePage,
-      importExcelIdonei, handleFileUploadIdonei, updateIdoneiTitle, resetIdoneiList,
+      importExcelIdonei, handleFileUploadIdonei, updateIdoneiTitle, resetIdoneiList, forceReloadIdonei,
       modal, modalConfirm, modalCancel
     };
   }

@@ -294,7 +294,7 @@ tr:nth-child(odd) {
 .prenotazione-nome { 
     text-align: left; 
     display: flex; 
-    font-size: 0.9em;
+    font-size: 1em;
     justify-content: space-between; 
     align-items: center; 
 }
