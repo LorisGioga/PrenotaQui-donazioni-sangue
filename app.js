@@ -1,5 +1,5 @@
 // ===================================================================
-//Programma Prenotazioni PrenotaQui 19/01/2026
+//Programma Prenotazioni PrenotaQui 2.0 30/01/2026 - Versione Aggiornata
 // ===================================================================
 // 1. Importazioni Firebase e Vue.js
 // ===================================================================
@@ -44,10 +44,10 @@ createApp({
     const user = reactive({ lastName:'', firstName:'', matricola:'', email:'', password:'', pageChoice:'page1' });
     const booking = reactive({ matricola:'', name:'', slot: null });
     const slots = [
-      { id:0, label:'FASCIA 1:\u00A0 07:50 – 08:05' }, { id:1, label:'FASCIA 2:\u00A0 08:10 – 08:30' },
-      { id:2, label:'FASCIA 3:\u00A0 08:35 – 08:55' }, { id:3, label:'FASCIA 4:\u00A0 09:00 – 09:20' },
-      { id:4, label:'FASCIA 5: \u00A009:25 – 09:45' }, { id:5, label:'FASCIA 6:\u00A0 09:50 – 10:10' },
-      { id:6, label:'FASCIA 7:\u00A0 10:15 – 10:35' }, { id:7, label:'FASCIA 8: \u00A010:40 – 11:00' },
+      { id:0, label:'Fascia 1: 07:50 – 08:05' }, { id:1, label:'Fascia 2: 08:10 – 08:30' },
+      { id:2, label:'Fascia 3: 08:35 – 08:55' }, { id:3, label:'Fascia 4: 09:00 – 09:20' },
+      { id:4, label:'Fascia 5: 09:25 – 09:45' }, { id:5, label:'Fascia 6: 09:50 – 10:10' },
+      { id:6, label:'Fascia 7: 10:15 – 10:35' }, { id:7, label:'Fascia 8: 10:40 – 11:00' },
       { id:8, label:'Riserve' }
     ];
     const bookingsBySlot = reactive({});
@@ -330,20 +330,24 @@ createApp({
       });
     }
 
+    // MODIFICA: Admin bypass per pagine bloccate
     async function enterPage() {
       if (!auth.currentUser) {
         await showAlert("Devi accedere per prenotare.");
-        view.value = 'auth';
+        view.value = 'landing';
         return;
       }
       if (!Object.keys(pageNames).includes(user.pageChoice)) {
         await showAlert("Selezione pagina non valida. Scegli una pagina disponibile.");
         return;
       }
-      if (blocks[user.pageChoice]) {
+      
+      // ADMIN BYPASS: se è admin, può sempre entrare anche se bloccato
+      if (!isAdmin.value && blocks[user.pageChoice]) {
         await showAlert('Al momento la pagina di prenotazione è bloccata. Sarai avvisato quando sarà disponibile.');
         return;
       }
+      
       view.value = user.pageChoice; 
       loadBookings();
     }
@@ -356,12 +360,20 @@ createApp({
       }); 
     }
 
+    // MODIFICA: Admin bypass anche nella prenotazione
     async function book() {
       if (!auth.currentUser) {
         await showAlert("Devi accedere per prenotare.");
-        view.value = 'auth';
+        view.value = 'landing';
         return;
       }
+      
+      // ADMIN BYPASS: se è admin, può prenotare anche se pagina bloccata
+      if (!isAdmin.value && blocks[user.pageChoice]) {
+        await showAlert('La pagina è bloccata. Non puoi prenotare al momento.');
+        return;
+      }
+      
       if (booking.slot==null) {
         await showAlert('Seleziona fascia');
         return;
@@ -422,7 +434,7 @@ createApp({
     async function confirmBook() {
       if (!auth.currentUser) {
         await showAlert("Devi accedere per prenotare.");
-        view.value = 'auth';
+        view.value = 'landing';
         return;
       }
       const confirmed = await showConfirm('Confermi la prenotazione per la fascia selezionata?');
@@ -578,7 +590,9 @@ createApp({
         Nome:b.name 
       })));
       const ws=XLSX.utils.json_to_sheet(data);
-      XLSX.utils.book_append_sheet(wb,ws,pageNames[user.pageChoice]||'Prenotazioni');
+      // Limita il nome del foglio a 31 caratteri (limite Excel)
+      const sheetName = (pageNames[user.pageChoice] || 'Prenotazioni').substring(0, 31);
+      XLSX.utils.book_append_sheet(wb,ws,sheetName);
       XLSX.writeFile(wb,`prenotazioni_${user.pageChoice}.xlsx`);
     }
     

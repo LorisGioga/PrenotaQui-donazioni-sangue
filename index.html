@@ -1,3 +1,6 @@
+<!-- ================================================================================= -->
+<!-- PrenotaQui 2.0  01 - 31 - 2026  -->
+<!-- ================================================================================= -->
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -19,9 +22,9 @@
 
     <div id="app" class="container" :class="view" v-cloak> 
      
-        
+        <!-- PRIMA PAGINA:  Titolo e informativa PRIVACY -->
         <div v-if="view==='landing'">
-            <h1 class="main-title">PrenotaQui</h1>
+            <h1 class="main-title">PrenotaQui 2</h1>
             <h2>Benvenuto nella nostra Applicazione per le prenotazioni</h2>
             <p>&nbsp;&nbsp;&nbsp;</p>
             <hr>
@@ -32,30 +35,37 @@
             <h4>Prenotandoti, DICHIARI di aver preso visione di questa formativa.</h4>
             <hr> 
             
-            <p style="margin-top:20px; font-size:1em; color:#2e2d2d; text-align:left;">
-             ℹ️ Nuovo utente → Registrati
-            </p> 
-              <p style="margin-top:0px; margin-bottom:-20px; font-size:1em; color:#2e2d2d; text-align:left;">
-             ℹ️ Utente già registrato → Accedi
-            </p>                  
-            <div class="landing-buttons">
-                <button @click="view='auth'">Accedi</button>
-                <button @click="view='register'">Registrati</button>
+            <!-- PRIMA PAGINA:  LOGIN -->
+            <div class="login-box">
+                <h4 style="text-align: center; margin-bottom: 20px;">Login</h4>
+                <h3 style="text-align: center; margin-bottom: 20px;">Accedi con le tue credenziali</h3>
+                <input type="email" v-model="user.email" placeholder="E-mail" 
+                       @keyup.enter="login()"
+                       class="landing-input">
+                <input type="password" v-model="user.password" placeholder="Password" 
+                       @keyup.enter="login()"
+                       class="landing-input">
+                <button @click="login()" class="landing-login-btn">Accedi</button>
+                
+                <div class="register-prompt">
+                    <p class="register-text">Non hai ancora le credenziali di accesso?<br>Registrati con il tasto "Nuovo utente"</p>
+                    <button @click="view='register'" class="register-btn">Nuovo Utente</button>
+                </div>
             </div>
         </div>
 
-        <div v-else-if="view==='auth' || view==='register'">
-            <h1 class="main-title">Inserisci le tue credenziali</h1>
-            <h2></h2>
-            <text></text>
-            <h5 v-if="view==='register'">
-                <strong>PRIMA REGISTRAZIONE:</strong> Compila tutti i campi richiesti (Cognome, Nome, Matricola, E-mail, Password).<br>
-                <strong>ACCESSI SUCCESSIVI:</strong> Basterà inserire solo E-mail e Password.
-            </h5>
-            <h5 v-else>
-                Inserisci la tua E-mail e Password per accedere.<br>
-                <small style="color:#696767;">Non serve compilare Cognome, Nome e Matricola per il login.</small>
-            </h5>
+        <!-- PAGINA REGISTRAZIONE (tutti i campi) -->
+        <div v-else-if="view==='register'">
+            <h1 class="main-title">Registrazione Nuovo Utente</h1>
+            <h2>Compila tutti i campi richiesti</h2>
+            <p>&nbsp;&nbsp;&nbsp;</p>
+            
+            <p style="margin-top:20px; font-size:1.1em; color:#2e2d2d; text-align:left;">
+             I tuoi dati verranno salvati. Clicca su "Pagina successiva" per proseguire con la prenotazione.
+            </p>  
+             <p style="margin-bottom:20px; font-size:1.1em; color:#2e2d2d; text-align:left;">
+                Per i futuri accessi, potrai utilizzare direttamente l'area Login.
+            </p>  
             
             <div class="form-container">
                 <input type="text" v-model="user.lastName" placeholder="Cognome" required
@@ -64,7 +74,7 @@
                 <input type="text" v-model="user.firstName" placeholder="Nome" required
                   @keydown.tab.prevent="focusNext($event)"
                   @keydown.arrow-down.prevent="focusNext($event)">
-                <input type="text" v-model="user.matricola" placeholder="Matricola" required
+                <input type="text" v-model="user.matricola" placeholder="Matricola (dal tesserino)" required
                   @keydown.tab.prevent="focusNext($event)"
                   @keydown.arrow-down.prevent="focusNext($event)">
                 <input type="email" v-model="user.email" placeholder="E-mail" required
@@ -72,37 +82,43 @@
                   @keydown.arrow-down.prevent="focusNext($event)">
                 <input type="password" v-model="user.password" placeholder="Password" required
                   @keydown.tab.prevent="focusNext($event)"
-                  @keydown.arrow-down.prevent="focusNext($event)">
+                  @keydown.arrow-down.prevent="focusNext($event)"
+                  @keyup.enter="register()">
             </div>
               
             <p>&nbsp;&nbsp;&nbsp;</p>
-            <button @click="view='landing'">Indietro</button>
-            <button @click="view==='register'? register(): login()">Avanti</button>
+            <button @click="view='landing'" class="btn-back">Indietro</button>
+            <button @click="register()" class="btn-forward">Pagina Successiva</button>
              <p style="margin-top:20px; font-size:1em; color:#2e2d2d; text-align:left;">
-             ℹ️ Dopo l’accesso o la prima registrazione il caricamento dei dati può richiedere alcuni secondi. 
-             Ti preghiamo di attendere senza ricaricare la pagina.
+             ℹ️ Dopo la registrazione il caricamento dei dati richiederà circa 5-6 secondi. 
+             Ti preghiamo di attendere.
             </p>  
         </div>
 
-        <!-- NUOVA PAGINA IDONEI (dopo login) -->
+        <!-- SECONDA PAGINA: Lista persone IDONEE (dopo login) -->
         <div v-else-if="view==='idoneiPage'" :key="'idonei-' + idoneiList.length">
             <h1 class="main-title">{{ idoneiTitle }}</h1>
-            
+                           
+            <!-- Nav principale per navigazione -->
             <nav class="top-nav">
+                <div></div>
                 <div>
-                    <button @click="forceReloadIdonei()" style="background:#28a745; margin:0;">🔄 Aggiorna Lista</button>
-                </div>
-                <div>
-                    <button @click="view='pageSelect'">Avanti</button>
-                    <button @click="logout()">Indietro</button>
-                    <button v-if="!isAdmin" @click="adminLogin()">Area Riservata</button>
+                    
+                    <button @click="logout()" class="btn-back">Indietro</button>
+                    <button @click="view='pageSelect'" class="btn-forward">Avanti</button>
+                    <button v-if="!isAdmin" @click="adminLogin()" class="btn-admin">Area Riservata</button>
                     <button class="exit" @click="logout()">Esci</button>
                 </div>
             </nav>
-            
+
+            <!-- separata per il pulsante Aggiorna -->
+            <h2 style="margin-top:10px; text-align:center;">Elenco delle persone idonee alla donazione</h2>
+            <p>&nbsp;&nbsp;&nbsp;</p>
+            <button @click="forceReloadIdonei()" class="btn-refresh">🔄 Aggiorna Lista</button>
+
              <p style="margin-top:20px; font-size:1em; color:#2e2d2d; text-align:left;">
                 ℹ️ La lista delle persone idonee viene caricata automaticamente.
-                Se non la visualizzi subito, clicca su “🔄 Aggiorna lista” per ricaricarla.
+                Se non la visualizzi subito, clicca su "🔄 Aggiorna lista" per ricaricarla.
             </p>     
              <p style="margin-top:20px; font-size:0.9em; color:#666464; text-align:left;">
                 ℹ️ I nomi completi sono visibili solo alle persone con la propria matricola.
@@ -124,7 +140,7 @@
                 </tbody>
             </table>
 
-            
+            <!-- TERZA PAGINA:  Seleziona una pagina -->
         </div>
 
         <div v-else-if="view==='pageSelect'">
@@ -132,7 +148,7 @@
             <nav class="top-nav">
                 <div></div>
                 <div>
-                    <button @click="adminLogin()">Area Riservata</button>
+                    <button @click="adminLogin()" class="btn-admin">Area Riservata</button>
                     <button class="exit" @click="logout()">Esci</button>
                 </div>
             </nav>
@@ -148,11 +164,12 @@
                 ℹ️ Anche se sono presenti più pagine, puoi effettuare una sola prenotazione complessiva.
             </p>  
             <p>&nbsp;&nbsp;&nbsp;</p>   
-            <button @click="view='idoneiPage'">Indietro</button>
-            <button @click="enterPage()">Avanti</button>
+            <button @click="view='idoneiPage'" class="btn-back">Indietro</button>
+            <button @click="enterPage()" class="btn-forward">Avanti</button>
             <h3></h3>
             <p></p>
 
+            <!-- TERZA PAGINA:  Area Riservata per Modificare  -->
             <div v-if="isAdmin" class="admin-settings">
                 
                 <div class="admin-section-header">
@@ -177,6 +194,9 @@
                 <hr>
 
                 <h3>Blocca Prenotazioni</h3>
+                <p style="font-size:0.9em; color:#ff6600; margin-bottom:10px; font-weight: bold;">
+                    ⚠️ Il blocco vale solo per gli utenti normali. L'admin può sempre operare.
+                </p>
                 <div v-for="(name, key) in pageNames" :key="key">
                     <label><input type="checkbox" v-model="blocks[key]" @change="updateBlock(key)"> Blocca: {{ name }}</label>
                 </div>
@@ -219,7 +239,7 @@
                     <input ref="fileInputIdonei" type="file" accept=".xlsx" @change="handleFileUploadIdonei" style="display:none">
                 </div>
 
-                <p style="margin-top:10px; font-size:0.9em; color:#666;">
+                <p style="margin-top:10px; font-size:0.9em; color:#676565;">
                     Il file Excel deve contenere le colonne: <strong>Matricola</strong> e <strong>Nome</strong> (formato: "COGNOME NOME")
                 </p>
 
@@ -235,13 +255,14 @@
             </div>
         </div>
 
+        <!-- QUARTA PAGINA:  Prenotazione -->
         <div v-else-if="Object.keys(pageNames).includes(view)"> 
             <h1 class="main-title">Pagina prenotazione</h1>
             <nav class="top-nav">
                 <div></div>
                 <div>
-                    <button @click="view='pageSelect'">Indietro</button> 
-                    <button v-if="!isAdmin" @click="adminLogin()">Area Riservata</button>
+                    <button @click="view='pageSelect'" class="btn-back">Indietro</button> 
+                    <button v-if="!isAdmin" @click="adminLogin()" class="btn-admin">Area Riservata</button>
                     <button class="exit" @click="logout()">Esci</button>
                 </div>
             </nav>
@@ -257,17 +278,18 @@
                     <input type="text" v-model="booking.matricola" placeholder="Matricola">
                     <input type="text" v-model="booking.name" placeholder="Cognome Nome">
                 </div>
-
+          
+                <p style="margin-top:20px; font-size:1em; color:#2e2d2d; text-align:left;">
+                ℹ️ Seleziona una fascia oraria disponibile e clicca su Prenota per confermare.
+                </p>  
                 <select v-model.number="booking.slot" class="slot-select">
                     <option :value="null">Seleziona fascia</option>
-                    <option v-for="slot in slots" :key="slot.id" :value="slot.id">
-                        {{ slot.id===8 ? 'Riserve' : slot.label }} – {{ remaining(slot) }} posti
+                    <option v-for="slot in slots" :key="slot.id" :value="slot.id" :disabled="slot.id!==8 && remaining(slot)<=0">
+                        {{ slot.id===8 ? 'Riserve' : slot.label }} – {{ remaining(slot) }} {{ remaining(slot)===1 ? 'posto' : 'posti' }}
                     </option>
                 </select>
                 
-                <p style="margin-top:20px; font-size:1em; color:#2e2d2d; text-align:left;">
-             ℹ️ Seleziona una fascia oraria disponibile e clicca su Prenota per confermare.
-                </p>  
+                
                 <p>&nbsp;&nbsp;</p>
                 <button @click="confirmBook()">Prenota</button>
             </div>
@@ -286,15 +308,24 @@
                 </thead>
                 <tbody>
                     <tr v-for="slot in slots" :key="slot.id">
-                        <td>{{ slot.id===8 ? 'Riserve' : 'Fascia: ' + slot.label }}</td>
+                        <td>{{ slot.id===8 ? 'Riserve' : slot.label }}</td>
                         <td><div v-for="j in seatsPerSlot" :key="j">{{ slot.id*seatsPerSlot + j }}</div></td>
                         <td>
-                            <div v-for="b of bookingsBySlot[slot.id]" :key="b.key" class="prenotazione-nome">
+                            <div v-for="b of bookingsBySlot[slot.id]" :key="b.key" class="prenotazione-nome"
+                                 :class="{ 'user-booking': user.matricola && String(b.matricola) === String(user.matricola) }">
                                 <span>{{ b.matricola }} {{ isAdmin ? b.name : mask(b.name, b.matricola) }}</span>
                                 <button v-if="isAdmin" @click="removeBooking(b.key)">Cancella</button>
                             </div>
                         </td>
-                        <td>{{ remaining(slot) }} posti</td>
+                        <td>
+                            <span class="seats-badge" :class="{
+                                'seats-many': remaining(slot) > 3,
+                                'seats-few': remaining(slot) > 0 && remaining(slot) <= 3,
+                                'seats-none': remaining(slot) === 0 && slot.id !== 8
+                            }">
+                                {{ remaining(slot) }} {{ remaining(slot)===1 ? 'posto' : 'posti' }}
+                            </span>
+                        </td>
                     </tr>
                 </tbody>
             </table>

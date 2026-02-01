@@ -1,4 +1,24 @@
 /* ================================================= */
+/* PALETTE COLORI FIDAS */
+/* ================================================= */
+:root {
+    --fidas-red: #c8102e;
+    --fidas-blue: #003d7a;
+    --fidas-light-blue: #4a90e2;
+    --fidas-green: #28a745;
+    --fidas-orange: #ff9800;
+    --fidas-viola: #9d92ca;
+    --fidas-gray: #6c757d;
+    --fidas-light-gray: #e8e8e8;
+    --fidas-dark: #212529;
+    --fidas-white: #ffffff;
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.2);
+    --transition: all 0.3s ease;
+}
+
+/* ================================================= */
 /* NUOVI STILI PER BARRA DI NAVIGAZIONE GLOBALE */
 /* ================================================= */
 p {
@@ -9,11 +29,12 @@ p {
 }
 
 .global-header {
-    background: #000;
-    color: #fff;
-    padding: 10px 50px;
+    background: linear-gradient(135deg, var(--fidas-dark) 0%, #000 100%);
+    color: var(--fidas-white);
+    padding: 15px 50px;
     width: 100%;
-    z-index: 1000; 
+    z-index: 1000;
+    box-shadow: var(--shadow-md);
 }
 
 .header-content {
@@ -24,13 +45,15 @@ p {
 }
 
 .header-logo {
-    height: 40px;
-    margin-right: 15px;
+    height: 45px;
+    margin-right: 20px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 }
 
 .header-text {
-    font-size: 1.2em;
+    font-size: 1.3em;
     font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
 
 #app.landing.privacy-text {
@@ -38,6 +61,127 @@ p {
     margin-top: 15px;
     margin-bottom: 15px;
     font-size: 1em;
+}
+
+/* ================================================= */
+/* STILI PER LANDING PAGE RINNOVATA */
+/* ================================================= */
+.login-box {
+    max-width: 520px;
+    margin: 40px auto;
+    padding: 35px;
+    background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(0,61,122,0.1);
+}
+
+.landing-input {
+    width: 100% !important;
+    padding: 16px !important;
+    margin: 12px 0 !important;
+    font-size: 1.1em !important;
+    border: 2px solid var(--fidas-light-gray) !important;
+    border-radius: 8px !important;
+    background: var(--fidas-white) !important;
+    transition: var(--transition) !important;
+}
+
+.landing-input:focus {
+    outline: none !important;
+    border-color: var(--fidas-blue) !important;
+    box-shadow: 0 0 0 3px rgba(0,61,122,0.1) !important;
+}
+
+.landing-login-btn {
+    width: 100%;
+    padding: 18px;
+    margin: 25px 0;
+    font-size: 1.3em;
+    font-weight: bold;
+    background: linear-gradient(135deg, var(--fidas-blue) 0%, #00508f 100%);
+    color: var(--fidas-white);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.landing-login-btn:hover {
+    background: linear-gradient(135deg, #00508f 0%, var(--fidas-blue) 100%);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.landing-login-btn:active {
+    transform: translateY(0);
+}
+
+.register-prompt {
+    margin-top: 35px;
+    padding-top: 25px;
+    border-top: 2px solid rgba(0,61,122,0.15);
+    text-align: center;
+}
+
+.register-text {
+    color: var(--fidas-dark);
+    font-size: 1.05em;
+    margin-bottom: 18px;
+    line-height: 1.6;
+}
+
+.register-btn {
+    background: linear-gradient(to bottom, #f5f5f5 0%, var(--fidas-light-gray) 100%) !important;
+    color: var(--fidas-dark) !important;
+    padding: 14px 35px !important;
+    font-size: 1.1em !important;
+    border: 2px solid #bbb !important;
+    border-radius: 8px !important;
+    cursor: pointer;
+    transition: var(--transition) !important;
+    font-weight: 600 !important;
+}
+
+.register-btn:hover {
+    background: linear-gradient(to bottom, var(--fidas-light-gray) 0%, #d5d5d5 100%) !important;
+    border-color: #999 !important;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm) !important;
+}
+
+/* ================================================= */
+/* BADGE POSTI DISPONIBILI */
+/* ================================================= */
+.seats-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.95em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.seats-many {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+    border: 1px solid #b1dfbb;
+}
+
+.seats-few {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    color: #856404;
+    border: 1px solid #ffd43b;
+}
+
+.seats-none {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+    border: 1px solid #f1b0b7;
 }
 
 /* ================================================= */
@@ -66,10 +210,10 @@ body {
     max-width: 1200px;
     width: 100%;
     margin: 30px auto;
-    padding: 30px; 
-    background: hsl(0, 0%, 100%);
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    padding: 35px; 
+    background: var(--fidas-white);
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
 }
 
 .privacy-text {
@@ -81,9 +225,11 @@ body {
 /* 1. STILI GENERALI PER I TAG */
 /* ================================================= */
 h1 {
-    font-size: 2.4em;
+    font-size: 2.5em;
     text-align: center;
     margin-bottom: 100px;
+    color: #000000;
+    font-weight: 700;
 }
 
 h2 {
@@ -91,13 +237,15 @@ h2 {
     text-align: center;
     margin-top: 10px;
     margin-bottom: 10px;
-    color: red;
+    color: var(--fidas-red);
+    font-weight: 600;
 }
 
 h3 {
     font-size: 1.5em;
     margin-top: 30px;
     margin-bottom: 10px;
+    color: #000000;
 }
 
 h4 {
@@ -120,8 +268,8 @@ h5, h6, p {
 
 /* --- A. Vista LANDING --- */
 #app.landing .main-title {
-    color: #007bff;
-    font-weight: bold;
+    color: #000000;
+    font-weight: 700;
     margin-bottom: 40px;
 }
 
@@ -132,8 +280,7 @@ h5, h6, p {
     font-size: 1em;
 }
 
-/* --- B. Vista AUTH/REGISTER --- */
-#app.auth .main-title, 
+/* --- B. Vista REGISTER --- */
 #app.register .main-title {
     color: #333;
     font-size: 2em;
@@ -164,18 +311,19 @@ h5, h6, p {
 /* --- D. Vista PAGE 1 / PAGE 2 --- */
 #app.page1 .main-title,
 #app.page2 .main-title {
-    color: #27ae60;
+    color: var(--fidas-green);
     font-size: 2.2em;
     margin-bottom: 10px;
 }
 
 #app.page1 .session-title,
 #app.page2 .session-title {
-    color: #27ae60; 
+    color: var(--fidas-green);
     text-align: left;
     font-size: 1.8em;
     margin-bottom: 25px;
-    border-bottom: 2px solid #27ae60;
+    border-bottom: 3px solid var(--fidas-green);
+    padding-bottom: 10px;
 }
 
 /* ================================================= */
@@ -195,32 +343,111 @@ select {
 }
 
 button { 
-    padding: 10px 20px; 
-    margin: 5px; 
-    margin-top: 00px;
+    padding: 12px 24px; 
+    margin: 5px;
     border: none; 
-    border-radius: 5px; 
+    border-radius: 8px; 
     cursor: pointer; 
-    background: #000; 
-    color: #fff; 
+    background: var(--fidas-blue);
+    color: var(--fidas-white);
+    font-weight: 600;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+/* Pulsante Prenota - Verde evidenziato */
+.booking-section button:not(.admin-exit) {
+    background: linear-gradient(135deg, var(--fidas-green) 0%, #218838 100%);
+    font-size: 1.2em;
+    padding: 16px 32px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.booking-section button:not(.admin-exit):hover {
+    background: linear-gradient(135deg, #218838 0%, var(--fidas-green) 100%);
+}
+
+/* Pulsanti Avanti - Blu FIDAS */
+.btn-forward {
+    background: linear-gradient(135deg, var(--fidas-blue) 0%, #00508f 100%) !important;
+    color: var(--fidas-white) !important;
+}
+
+.btn-forward:hover {
+    background: linear-gradient(135deg, #00508f 0%, var(--fidas-blue) 100%) !important;
+}
+
+/* Pulsanti Indietro - Blu chiaro */
+.btn-back {
+    background: linear-gradient(135deg, var(--fidas-blue) 0%, #00508f 100%) !important;
+    color: var(--fidas-white) !important;
+}
+
+.btn-back:hover {
+    background: linear-gradient(135deg, #00508f 0%, var(--fidas-blue) 100%) !important;
+}
+
+/* Pulsante Area Riservata - Viola distintivo */
+.btn-admin {
+    background: linear-gradient(135deg, var(--fidas-viola) 0%, #8a7ebd 100%) !important;
+    color: var(--fidas-white) !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 8px rgba(157, 146, 202, 0.3) !important;
+}
+
+.btn-admin:hover {
+    background: linear-gradient(135deg, #8a7ebd 0%, var(--fidas-viola) 100%) !important;
+    box-shadow: 0 6px 12px rgba(157, 146, 202, 0.4) !important;
+}
+
+/* Pulsante Aggiorna Lista - Verde */
+.btn-refresh {
+    background: linear-gradient(135deg, var(--fidas-green) 0%, #218838 100%) !important;
+    color: var(--fidas-white) !important;
+}
+
+.btn-refresh:hover {
+    background: linear-gradient(135deg, #218838 0%, var(--fidas-green) 100%) !important;
 }
 
 button.reset { 
-    background: red; 
-    color: #fff; 
+    background: linear-gradient(135deg, var(--fidas-red) 0%, #a00c24 100%);
+    color: var(--fidas-white);
     float: right; 
 }
 
+button.reset:hover {
+    background: linear-gradient(135deg, #a00c24 0%, var(--fidas-red) 100%);
+}
+
 button.exit { 
-    background: red; 
-    margin-top: 00px;
+    background: linear-gradient(135deg, var(--fidas-red) 0%, #a00c24 100%);
+    margin-top: 0px;
     margin-bottom: 100px;
-    color: #fff; 
+    color: var(--fidas-white);
+}
+
+button.exit:hover {
+    background: linear-gradient(135deg, #a00c24 0%, var(--fidas-red) 100%);
 }
 
 button.admin-exit { 
-    background: orange; 
-    color: #fff; 
+    background: linear-gradient(135deg, var(--fidas-orange) 0%, #f57c00 100%);
+    color: var(--fidas-white);
+}
+
+button.admin-exit:hover {
+    background: linear-gradient(135deg, #f57c00 0%, var(--fidas-orange) 100%);
 }
 
 input[type="text"], 
@@ -228,12 +455,40 @@ input[type="email"],
 input[type="password"], 
 select {
     width: 97%; 
-    padding: 15px; 
-    margin: 5px 0; 
-    background: rgb(232,229,229);
-    border: 1px solid #131313; 
-    border-radius: 5px; 
-    font-size: 1.2em;
+    padding: 16px; 
+    margin: 8px 0; 
+    background: var(--fidas-white);
+    border: 2px solid var(--fidas-light-gray);
+    border-radius: 8px;
+    font-size: 1.1em;
+    transition: var(--transition);
+}
+
+input[type="text"]:focus, 
+input[type="email"]:focus, 
+input[type="password"]:focus, 
+select:focus {
+    outline: none;
+    border-color: var(--fidas-blue);
+    box-shadow: 0 0 0 3px rgba(0,61,122,0.1);
+}
+
+input[type="text"]:disabled {
+    background: #f0f0f0;
+    color: #666;
+    cursor: not-allowed;
+}
+
+select.slot-select {
+    font-size: 1.15em;
+    font-weight: 500;
+    padding: 18px;
+    cursor: pointer;
+}
+
+select.slot-select option:disabled {
+    color: #999;
+    font-style: italic;
 }
 
 nav.top-nav { 
@@ -264,31 +519,47 @@ nav.top-nav {
 
 table { 
     width: 100%; 
-    border-spacing: 5px; 
-    border: 1px solid #ddd; 
-    margin-top: 20px; 
+    border-spacing: 0; 
+    border: 1px solid #dee2e6;
+    margin-top: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
 }
 
 th, 
 td { 
-    padding: 8px; 
-    border: 1px solid #ddd; 
+    padding: 12px; 
+    border: 1px solid #dee2e6;
     vertical-align: top; 
     text-align: center; 
 }
 
 th { 
-    font-size: 1.2em; 
-    letter-spacing: 1px; 
-    padding: 10px; 
+    font-size: 1.1em; 
+    letter-spacing: 0.5px; 
+    padding: 14px;
+    background: linear-gradient(135deg, var(--fidas-blue) 0%, #00508f 100%);
+    color: var(--fidas-white);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+tbody tr {
+    transition: var(--transition);
+}
+
+tbody tr:hover {
+    background: #f1f8ff !important;
+    transform: scale(1.01);
 }
 
 tr:nth-child(even) { 
-    background: #4fbefa; 
+    background: #e3f2fd;
 }
 
 tr:nth-child(odd) { 
-    background: #48abcc; 
+    background: #f8f9fa;
 }
 
 .prenotazione-nome { 
@@ -302,6 +573,16 @@ tr:nth-child(odd) {
 .prenotazione-nome button { 
     padding: 3px 6px; 
     font-size: 0.6em; 
+}
+
+/* Evidenziazione prenotazione utente loggato - Solo testo arancione */
+.prenotazione-nome.user-booking {
+    color: var(--fidas-red);
+    font-weight: 700;
+}
+
+.prenotazione-nome.user-booking span {
+    color: var(--fidas-red);
 }
 
 .page-name-input, 
@@ -386,75 +667,100 @@ tr:nth-child(odd) {
 
 .modal-box {
     background: white;
-    border: 2px solid #000;
-    border-radius: 8px;
-    padding: 20px;
-    max-width: 400px;
+    border: none;
+    border-radius: 16px;
+    padding: 30px;
+    max-width: 450px;
     width: 90%;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    position: relative; /* Aggiunto per garantire che rimanga visibile */
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    position: relative;
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .modal-title {
-    font-size: 1.4em;
-    font-weight: bold;
-    color: #000;
-    margin: 0 0 15px 0;
+    font-size: 1.5em;
+    font-weight: 700;
+    color: var(--fidas-blue);
+    margin: 0 0 20px 0;
     text-align: center;
-    border-bottom: 2px solid #000;
-    padding-bottom: 10px;
+    border-bottom: none;
+    padding-bottom: 0;
 }
 
 .modal-message {
     font-size: 1.1em;
-    color: #333;
-    margin-bottom: 20px;
+    color: #444;
+    margin-bottom: 25px;
     text-align: center;
-    line-height: 1.4;
+    line-height: 1.6;
 }
 
 .modal-input {
     width: 100%;
-    padding: 10px;
+    padding: 14px;
     font-size: 1.1em;
-    border: 2px solid #000;
-    border-radius: 4px;
-    margin-bottom: 20px;
+    border: 2px solid var(--fidas-light-gray);
+    border-radius: 8px;
+    margin-bottom: 25px;
     box-sizing: border-box;
+    transition: var(--transition);
+}
+
+.modal-input:focus {
+    outline: none;
+    border-color: var(--fidas-blue);
+    box-shadow: 0 0 0 3px rgba(0,61,122,0.1);
 }
 
 .modal-buttons {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 15px;
 }
 
 .modal-btn-ok,
 .modal-btn-cancel {
-    padding: 10px 20px;
-    font-size: 1em;
+    padding: 12px 30px;
+    font-size: 1.05em;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
-    font-weight: bold;
+    font-weight: 600;
+    transition: var(--transition);
 }
 
 .modal-btn-ok {
-    background: #000;
+    background: linear-gradient(135deg, var(--fidas-blue) 0%, #00508f 100%);
     color: white;
+    box-shadow: var(--shadow-sm);
 }
 
 .modal-btn-cancel {
-    background: #ccc;
-    color: #333;
+    background: linear-gradient(to bottom, #f8f9fa 0%, var(--fidas-light-gray) 100%);
+    color: var(--fidas-dark);
+    border: 1px solid #ccc;
 }
 
 .modal-btn-ok:hover {
-    background: #333;
+    background: linear-gradient(135deg, #00508f 0%, var(--fidas-blue) 100%);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
 .modal-btn-cancel:hover {
-    background: #999;
+    background: linear-gradient(to bottom, var(--fidas-light-gray) 0%, #d5d5d5 100%);
+    transform: translateY(-1px);
 }
 
 /* ================================================= */
@@ -462,32 +768,78 @@ tr:nth-child(odd) {
 /* ================================================= */
 @media screen and (max-width: 700px) {
     .container { 
-        padding: 5px; 
+        padding: 20px;
+        margin: 15px auto;
     }
     
     input, 
     select { 
-        padding: 10px; 
-        width: 90%; 
-        font-size: 0.85em; 
+        padding: 14px; 
+        width: 95%;
     }
     
     th, 
     td, 
     button { 
-        font-size: 0.85em; 
+        font-size: 0.9em; 
     }
     
     .global-header {
-        padding: 10px 15px;
+        padding: 12px 20px;
     }
     
     .header-text {
         font-size: 1em;
     }
     
+    .header-logo {
+        height: 35px;
+    }
+    
     .modal-box {
         width: 95%;
-        padding: 15px;
+        padding: 25px 20px;
+    }
+    
+    .login-box {
+        padding: 25px;
+        margin: 25px auto;
+    }
+    
+    .landing-input {
+        font-size: 1em !important;
+        padding: 14px !important;
+    }
+    
+    .landing-login-btn {
+        font-size: 1.15em;
+        padding: 16px;
+    }
+    
+    h1 {
+        font-size: 2em;
+        margin-bottom: 50px;
+    }
+    
+    h2 {
+        font-size: 1.6em;
+    }
+    
+    .seats-badge {
+        font-size: 0.85em;
+        padding: 5px 10px;
+    }
+    
+    nav.top-nav {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    nav.top-nav > div {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
     }
 }
