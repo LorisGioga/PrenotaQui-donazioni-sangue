@@ -1,6 +1,7 @@
-<!-- ================================================================================= -->
-<!-- PrenotaQui 2.0  01 - 31 - 2026  -->
-<!-- ================================================================================= -->
+<!--=====================================================================-->
+<!--PrenotaQui 2.1 03/02/2026 -->
+<!--====================================================================-->
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -25,7 +26,7 @@
         <!-- PRIMA PAGINA:  Titolo e informativa PRIVACY -->
         <div v-if="view==='landing'">
             <h1 class="main-title">PrenotaQui 2</h1>
-            <h2>Benvenuto nella nostra Applicazione per le prenotazioni</h2>
+            <h2>Web App - Prenotazioni Online</h2>
             <p>&nbsp;&nbsp;&nbsp;</p>
             <hr>
             <h3>INFORMATIVA SULLA GESTIONE DEI DATI PERSONALI DEI DONATORI:</h3>
@@ -35,22 +36,57 @@
             <h4>Prenotandoti, DICHIARI di aver preso visione di questa formativa.</h4>
             <hr> 
             
-            <!-- PRIMA PAGINA:  LOGIN -->
-            <div class="login-box">
-                <h4 style="text-align: center; margin-bottom: 20px;">Login</h4>
-                <h3 style="text-align: center; margin-bottom: 20px;">Accedi con le tue credenziali</h3>
-                <input type="email" v-model="user.email" placeholder="E-mail" 
-                       @keyup.enter="login()"
-                       class="landing-input">
-                <input type="password" v-model="user.password" placeholder="Password" 
-                       @keyup.enter="login()"
-                       class="landing-input">
-                <button @click="login()" class="landing-login-btn">Accedi</button>
+            <!-- LAYOUT A DUE COLONNE -->
+            <div class="two-column-layout">
                 
-                <div class="register-prompt">
-                    <p class="register-text">Non hai ancora le credenziali di accesso?<br>Registrati con il tasto "Nuovo utente"</p>
-                    <button @click="view='register'" class="register-btn">Nuovo Utente</button>
+                <!-- BOX SINISTRO: DATE E MEDICO (con flexbox per mettere medico in fondo) -->
+                <div class="info-box card-calendario">
+                    <!-- Date Donazioni -->
+                    <div>
+                        <h3 style="text-align: center; margin-bottom: 20px; margin-top: 5px; color: var(--fidas-black);">Calendario Donazioni</h3>
+                        <div class="donation-dates">
+                            <div v-for="(date, index) in donationDates.filter(d => d && d.trim() !== '')" :key="index" class="date-item">
+                                📅 {{ date }}
+                            </div>
+                            <p v-if="donationDates.filter(d => d && d.trim() !== '').length === 0" 
+                               style="color: #999; font-style: italic; text-align: center;">
+                                Nessuna data disponibile al momento.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Info Medico - MODIFICATO: Layout orizzontale E in fondo grazie a margin-top: auto -->
+                    <div v-if="medicoEmail" class="card-footer medico-info">
+                        <hr style="margin: 15px 0 25px 0; border-color: #ddd;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: #6B7280; font-size: 0.9em; white-space: nowrap;">
+                                Email Medico Responsabile:
+                            </span>
+                            <span style="color: #212529; font-size: 1.05em; font-weight: 500;">
+                                {{ medicoEmail }}
+                            </span>
+                        </div>
+                    </div>
                 </div>
+                
+                <!-- BOX DESTRO: LOGIN -->
+                <div class="login-box">
+                    <h4 style="text-align: center; margin-bottom: 20px;margin-top: 5px;">Login</h4>
+                    <h3 style="text-align: center; margin-bottom: 20px;">Accedi con le tue credenziali</h3>
+                    <input type="email" v-model="user.email" placeholder="E-mail" 
+                           @keyup.enter="login()"
+                           class="landing-input">
+                    <input type="password" v-model="user.password" placeholder="Password" 
+                           @keyup.enter="login()"
+                           class="landing-input">
+                    <button @click="login()" class="landing-login-btn">Accedi</button>
+                    
+                    <div class="register-prompt">
+                        <p class="register-text">Non hai ancora le credenziali di accesso?<br>Registrati con il tasto "Nuovo utente"</p>
+                        <button @click="view='register'" class="register-btn">Nuovo Utente</button>
+                    </div>
+                </div>
+                
             </div>
         </div>
 
@@ -60,10 +96,10 @@
             <h2>Compila tutti i campi richiesti</h2>
             <p>&nbsp;&nbsp;&nbsp;</p>
             
-            <p style="margin-top:20px; font-size:1.1em; color:#2e2d2d; text-align:left;">
+            <p style="margin-top:20px; font-size:1.0em; color:#6B7280; text-align:left;">
              I tuoi dati verranno salvati. Clicca su "Pagina successiva" per proseguire con la prenotazione.
             </p>  
-             <p style="margin-bottom:20px; font-size:1.1em; color:#2e2d2d; text-align:left;">
+             <p style="margin-bottom:20px; font-size:1.0em; color:#6B7280; text-align:left;">
                 Per i futuri accessi, potrai utilizzare direttamente l'area Login.
             </p>  
             
@@ -74,7 +110,7 @@
                 <input type="text" v-model="user.firstName" placeholder="Nome" required
                   @keydown.tab.prevent="focusNext($event)"
                   @keydown.arrow-down.prevent="focusNext($event)">
-                <input type="text" v-model="user.matricola" placeholder="Matricola (dal tesserino)" required
+                <input type="text" v-model="user.matricola" placeholder="Matricola" required
                   @keydown.tab.prevent="focusNext($event)"
                   @keydown.arrow-down.prevent="focusNext($event)">
                 <input type="email" v-model="user.email" placeholder="E-mail" required
@@ -87,9 +123,9 @@
             </div>
               
             <p>&nbsp;&nbsp;&nbsp;</p>
-            <button @click="view='landing'" class="btn-back">Indietro</button>
-            <button @click="register()" class="btn-forward">Pagina Successiva</button>
-             <p style="margin-top:20px; font-size:1em; color:#2e2d2d; text-align:left;">
+            <button @click="view='landing'" class="btn-back">← Indietro</button>
+            <button @click="register()" class="btn-forward">Pagina Successiva →</button>
+             <p style="margin-top:20px; font-size:1em; color:#6B7280; text-align:left;">
              ℹ️ Dopo la registrazione il caricamento dei dati richiederà circa 5-6 secondi. 
              Ti preghiamo di attendere.
             </p>  
@@ -98,14 +134,13 @@
         <!-- SECONDA PAGINA: Lista persone IDONEE (dopo login) -->
         <div v-else-if="view==='idoneiPage'" :key="'idonei-' + idoneiList.length">
             <h1 class="main-title">{{ idoneiTitle }}</h1>
-                           
-            <!-- Nav principale per navigazione -->
+             <!-- Nav principale per navigazione -->
             <nav class="top-nav">
                 <div></div>
                 <div>
                     
-                    <button @click="logout()" class="btn-back">Indietro</button>
-                    <button @click="view='pageSelect'" class="btn-forward">Avanti</button>
+                    <button @click="logout()" class="btn-back">← Indietro</button>
+                    <button @click="view='pageSelect'" class="btn-forward">Avanti →</button>
                     <button v-if="!isAdmin" @click="adminLogin()" class="btn-admin">Area Riservata</button>
                     <button class="exit" @click="logout()">Esci</button>
                 </div>
@@ -116,16 +151,19 @@
             <p>&nbsp;&nbsp;&nbsp;</p>
             <button @click="forceReloadIdonei()" class="btn-refresh">🔄 Aggiorna Lista</button>
 
-             <p style="margin-top:20px; font-size:1em; color:#2e2d2d; text-align:left;">
+             <p style="margin-top:20px; font-size:1em; color:#6B7280; text-align:left;">
                 ℹ️ La lista delle persone idonee viene caricata automaticamente.
                 Se non la visualizzi subito, clicca su "🔄 Aggiorna lista" per ricaricarla.
             </p>     
-             <p style="margin-top:20px; font-size:0.9em; color:#666464; text-align:left;">
+             <p style="margin-top:20px; font-size:1em; color:#6B7280; text-align:left;">
                 ℹ️ I nomi completi sono visibili solo alle persone con la propria matricola.
             </p>   
-            <p v-if="idoneiList.length === 0" style="color:#999; font-style:italic; text-align:center; margin:30px 0;">
+            <p v-if="idoneiList.length === 0" style="color:#6B7280; font-style:italic; text-align:center; margin:30px 0;">
                 Nessuna lista disponibile al momento.
             </p>
+            
+            
+            
 
             <table v-else class="bookings-table">
                 <thead>
@@ -160,12 +198,12 @@
                 </select>
             </label>
             
-            <p style="margin-top:20px; font-size:1em; color:#2e2d2d; text-align:left;">
+            <p style="margin-top:20px; font-size:1em; color:#6B7280; text-align:left;">
                 ℹ️ Anche se sono presenti più pagine, puoi effettuare una sola prenotazione complessiva.
             </p>  
             <p>&nbsp;&nbsp;&nbsp;</p>   
-            <button @click="view='idoneiPage'" class="btn-back">Indietro</button>
-            <button @click="enterPage()" class="btn-forward">Avanti</button>
+            <button @click="view='idoneiPage'" class="btn-back">← Indietro</button>
+            <button @click="enterPage()" class="btn-forward">Avanti →</button>
             <h3></h3>
             <p></p>
 
@@ -248,10 +286,65 @@
                     <div v-for="(persona, idx) in idoneiList.slice(0, 5)" :key="idx" style="padding:8px 0; border-bottom:1px solid #ddd;">
                         <strong>{{ persona.matricola }}</strong> - {{ persona.cognome }} {{ persona.nome }}
                     </div>
-                    <p v-if="idoneiList.length > 5" style="color:#666; font-style:italic; margin-top:10px;">
+                    <p v-if="idoneiList.length > 5" style="color:#6B7280; font-style:italic; margin-top:10px;">
                         ... e altre {{ idoneiList.length - 5 }} persone
                     </p>
                 </div>
+                
+                <p>&nbsp;&nbsp;&nbsp;</p>
+                <hr>
+                <hr>
+                
+                <h3>Gestione Landing Page</h3>
+                
+                <!-- Date Donazioni -->
+                <h4 style="margin-top:25px; color: var(--fidas-blue);">Prossime Donazioni (max 8)</h4>
+                <p style="font-size:0.9em; color:#6B7280; margin-bottom:15px;">
+                    Le date vengono mostrate solo se non vuote. Lascia vuoto per non visualizzare.
+                </p>
+                <div v-for="(date, index) in donationDates" :key="index" style="margin-bottom:10px;">
+                    <label style="display:block; margin-bottom:5px;">Data {{ index + 1 }}:</label>
+                    <input type="text" v-model="donationDates[index]" @blur="updateDonationDate(index)" 
+                           placeholder="es: 17 Gennaio 2026" class="text-input">
+                </div>
+                
+                <!-- Email Medico -->
+                <h4 style="margin-top:25px; color: var(--fidas-blue);">Medico Responsabile</h4>
+                <label style="display:block; margin-bottom:5px;">Email:</label>
+                <input type="email" v-model="medicoEmail" @blur="updateMedicoEmail()" 
+                       placeholder="medico@fidas.it" class="text-input">
+                
+                <p>&nbsp;&nbsp;&nbsp;</p>
+                <hr>
+                <hr>
+                
+                <h3>Gestione Footer - Informazioni Contatto</h3>
+                <p style="font-size:0.9em; color:#6B7280; margin-bottom:15px;">
+                    Le informazioni verranno mostrate nella barra footer in basso. Lascia vuoto per nascondere.
+                </p>
+                
+                <h4 style="margin-top:20px; color: var(--fidas-blue);">Contatti Footer</h4>
+                
+                <label style="display:block; margin-bottom:5px; margin-top:15px;">Email Gruppo:</label>
+                <input type="email" v-model="footerContacts.email" @blur="updateFooterContact('email')" 
+                       placeholder="info@fidas-sangiusto.it" class="text-input">
+                
+                <label style="display:block; margin-bottom:5px; margin-top:15px;">Telefono:</label>
+                <input type="text" v-model="footerContacts.phone" @blur="updateFooterContact('phone')" 
+                       placeholder="333 78 36 256" class="text-input">
+                
+                <label style="display:block; margin-bottom:5px; margin-top:15px;">WhatsApp:</label>
+                <input type="text" v-model="footerContacts.whatsapp" @blur="updateFooterContact('whatsapp')" 
+                       placeholder="333 78 36 256" class="text-input">
+                
+                <label style="display:block; margin-bottom:5px; margin-top:15px;">Indirizzo:</label>
+                <input type="text" v-model="footerContacts.address" @blur="updateFooterContact('address')" 
+                       placeholder="Via Roma 1, San Giusto Canavese (TO)" class="text-input">
+                
+                <label style="display:block; margin-bottom:5px; margin-top:15px;">Sito Web:</label>
+                <input type="text" v-model="footerContacts.website" @blur="updateFooterContact('website')" 
+                       placeholder="www.fidas-sangiusto.it" class="text-input">
+                       
             </div>
         </div>
 
@@ -261,7 +354,7 @@
             <nav class="top-nav">
                 <div></div>
                 <div>
-                    <button @click="view='pageSelect'" class="btn-back">Indietro</button> 
+                    <button @click="view='pageSelect'" class="btn-back">← Indietro</button> 
                     <button v-if="!isAdmin" @click="adminLogin()" class="btn-admin">Area Riservata</button>
                     <button class="exit" @click="logout()">Esci</button>
                 </div>
@@ -279,7 +372,7 @@
                     <input type="text" v-model="booking.name" placeholder="Cognome Nome">
                 </div>
           
-                <p style="margin-top:20px; font-size:1em; color:#2e2d2d; text-align:left;">
+                <p style="margin-top:20px; font-size:1em; color:#6B7280; text-align:left;">
                 ℹ️ Seleziona una fascia oraria disponibile e clicca su Prenota per confermare.
                 </p>  
                 <select v-model.number="booking.slot" class="slot-select">
@@ -343,6 +436,32 @@
                 </div>
             </div>
         </div>
+
+    <!-- FOOTER BAR FISSA -->
+    <footer class="global-footer">
+        <div class="footer-content">
+            <div class="footer-item" v-if="footerContacts.email">
+                <span class="footer-icon">📧</span>
+                <span class="footer-text">{{ footerContacts.email }}</span>
+            </div>
+            <div class="footer-item" v-if="footerContacts.phone">
+                <span class="footer-icon">📱</span>
+                <span class="footer-text">{{ footerContacts.phone }}</span>
+            </div>
+            <div class="footer-item" v-if="footerContacts.whatsapp">
+                <span class="footer-icon">💬</span>
+                <span class="footer-text">{{ footerContacts.whatsapp }}</span>
+            </div>
+            <div class="footer-item" v-if="footerContacts.address">
+                <span class="footer-icon">📍</span>
+                <span class="footer-text">{{ footerContacts.address }}</span>
+            </div>
+            <div class="footer-item" v-if="footerContacts.website">
+                <span class="footer-icon">🌐</span>
+                <span class="footer-text">{{ footerContacts.website }}</span>
+            </div>
+        </div>
+    </footer>
 
     </div>
 

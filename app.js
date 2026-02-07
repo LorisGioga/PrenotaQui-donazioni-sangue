@@ -1,5 +1,5 @@
 // ===================================================================
-//Programma Prenotazioni PrenotaQui 2.0 30/01/2026 - Versione Aggiornata
+//Programma Prenotazioni PrenotaQui 2.2 - 07/02/2026 - FIXED VERSION
 // ===================================================================
 // 1. Importazioni Firebase e Vue.js
 // ===================================================================
@@ -10,7 +10,7 @@ import { getDatabase, ref, push, onValue, set, get, child, remove, update } from
 
 const { createApp, reactive, ref: vueRef } = Vue;
 //=====================================================================
-// 2. Configurazione Firebase: FIDAS SAN GIUSTO CAN 2
+// 2. Configurazione Firebase: Fidas San Giusto Can 2
 //=====================================================================
 const firebaseConfig = {
   apiKey: "AIzaSyAoToelGIbZy2w_Kk0u4HDFIB56AuQNwRU",
@@ -21,6 +21,7 @@ const firebaseConfig = {
   messagingSenderId: "963864891985",
   appId: "1:963864891985:web:33161373f6712197751e70"
 };
+
 
 //
 // 
@@ -58,6 +59,25 @@ createApp({
     const idoneiList = reactive([]);
     const idoneiTitle = vueRef('Elenco Persone Idonee Pangea');
     const fileInputIdonei = vueRef(null);
+    
+    // Landing Page - Link e Date - Initialize with proper defaults
+    const landingLinks = reactive({
+      fidasPiemonte: { title: 'FIDAS Piemonte', url: 'https://www.fidaspiemonte.it', enabled: true },
+      sanGiusto: { title: 'Sito San Giusto', url: 'https://sites.google.com/view/fidas-gruppo-san-giusto-can/home-page', enabled: true },
+      fidasUfficiale: { title: 'FIDAS Nazionale', url: 'https://www.fidas.it', enabled: true },
+      newsFidas: { title: 'News FIDAS', url: 'https://sites.google.com/view/fidas-gruppo-san-giusto-can/news', enabled: true }
+    });
+    const donationDates = reactive(['', '', '', '', '', '', '', '']);
+    const medicoEmail = vueRef('medico@fidas-sangiusto.it');
+    
+    // Footer contacts
+    const footerContacts = reactive({
+      email: '',
+      phone: '',
+      whatsapp: '',
+      address: '',
+      website: ''
+    });
     
     const texts = reactive({ 
       landing:'Se sei un nuovo donatore o non fai parte di questo gruppo, contatta il N. 333.78.36.256 o uno del Direttivo, ci penseremo noi ad inserirti nella lista.', 
@@ -129,28 +149,20 @@ createApp({
     }
 
     // INIZIALIZZAZIONI DB
-    get(ref(db, 'h4Texts')).then(s => { if (!s.exists()) set(ref(db, 'h4Texts'), texts); });
-    
+    // I dati vengono caricati dai listener onValue qui sotto.
+    // Lettura iniziale di pageNames per impostare user.pageChoice correttamente.
     get(ref(db, 'pageNames')).then(s => { 
-      if (!s.exists() || Object.keys(s.val() || {}).length === 0) {
-        set(ref(db, 'pageNames'), { page1: 'Pagina 1' });
-        set(ref(db, 'blocks/page1'), false);
-        user.pageChoice = 'page1';
-      } else {
+      if (s.exists() && Object.keys(s.val() || {}).length > 0) {
         const keys = Object.keys(s.val());
         if (!keys.includes(user.pageChoice)) {
              user.pageChoice = keys[0];
         }
       }
-    });
+    }).catch(() => {});
 
     get(ref(db, 'seatsPerSlot')).then(s => { 
-      if (!s.exists()) {
-        set(ref(db, 'seatsPerSlot'), 6);
-      } else {
-        seatsPerSlot.value = s.val();
-      }
-    });
+      if (s.exists()) seatsPerSlot.value = s.val();
+    }).catch(() => {});
 
     const isRegistering = vueRef(false);
 
@@ -213,6 +225,27 @@ createApp({
       if (snap.exists()) {
         idoneiTitle.value = snap.val();
       }
+    });
+    
+    // === Landing Page Data ===
+    // Dati caricati dai listener onValue. I valori default sono già nei reactive object.
+    
+    onValue(ref(db, 'landingLinks'), snap => {
+      if (snap.val()) {
+        Object.assign(landingLinks, snap.val());
+      }
+    });
+    
+    onValue(ref(db, 'donationDates'), snap => {
+      if (snap.val()) donationDates.splice(0, donationDates.length, ...snap.val());
+    });
+    
+    onValue(ref(db, 'medicoEmail'), snap => {
+      if (snap.val()) medicoEmail.value = snap.val();
+    });
+    
+    onValue(ref(db, 'footerContacts'), snap => {
+      if (snap.val()) Object.assign(footerContacts, snap.val());
     });
 
     const remaining = slot => seatsPerSlot.value - (bookingsBySlot[slot.id]?.length || 0);
@@ -283,6 +316,8 @@ createApp({
           idoneiList.splice(0, idoneiList.length, ...arr);
         }
         showAlert(`Lista aggiornata! ${idoneiList.length} persone caricate.`);
+      }).catch(err => {
+        showAlert('Errore nel caricamento della lista: ' + err.message);
       });
     }
 
@@ -559,6 +594,43 @@ createApp({
       }
     }
     
+    // === Landing Page Admin Functions ===
+    async function updateLandingLink(key, field, value) {
+      try {
+        await set(ref(db, `landingLinks/${key}/${field}`), value);
+      } catch (e) {
+        console.error("Errore updateLandingLink:", e);
+        await showAlert('Errore durante l\'aggiornamento del link');
+      }
+    }
+    
+    async function updateDonationDate(index) {
+      try {
+        await set(ref(db, 'donationDates'), donationDates);
+      } catch (e) {
+        console.error("Errore updateDonationDate:", e);
+        await showAlert('Errore durante l\'aggiornamento della data');
+      }
+    }
+    
+    async function updateMedicoEmail() {
+      try {
+        await set(ref(db, 'medicoEmail'), medicoEmail.value);
+      } catch (e) {
+        console.error("Errore updateMedicoEmail:", e);
+        await showAlert('Errore durante l\'aggiornamento email medico');
+      }
+    }
+    
+    async function updateFooterContact(field) {
+      try {
+        await set(ref(db, 'footerContacts'), footerContacts);
+      } catch (e) {
+        console.error("Errore updateFooterContact:", e);
+        await showAlert('Errore durante l\'aggiornamento contatti footer');
+      }
+    }
+    
     async function removeBooking(key) {
       const confirmed = await showConfirm('Confermi cancellazione prenotazione?');
       if(confirmed){
@@ -765,11 +837,13 @@ createApp({
     return { 
       view, user, booking, slots, bookingsBySlot, seatsPerSlot, pageNames, texts, blocks, isAdmin, adminPass, newPageName,
       idoneiList, idoneiTitle, fileInputIdonei, isRegistering,
+      landingLinks, donationDates, medicoEmail, footerContacts,
       remaining, mask, register, login, logout, enterPage, loadBookings, confirmBook, adminLogin, exitAdmin, 
       updatePageName, updateText, updateBlock, updateAdminPass, updateSeatsPerSlot, removeBooking, resetAll, exportExcel, 
       importExcel, handleFileUpload, focusNext, fileInput, 
       addPage, removePage,
       importExcelIdonei, handleFileUploadIdonei, updateIdoneiTitle, resetIdoneiList, forceReloadIdonei,
+      updateLandingLink, updateDonationDate, updateMedicoEmail, updateFooterContact,
       modal, modalConfirm, modalCancel
     };
   }
