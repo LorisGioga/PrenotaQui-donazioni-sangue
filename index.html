@@ -196,18 +196,20 @@
             
             
 
-            <table v-else class="bookings-table">
-                <thead>
-                    <tr><th>Matricola</th><th>Nome Cognome</th></tr>
-                </thead>
-                <tbody>
-                    <tr v-for="(persona, idx) in idoneiList" :key="idx" 
-                        :class="{ 'highlight-user': user.matricola && String(persona.matricola) === String(user.matricola) }">
-                        <td>{{ persona.matricola }}</td>
-                        <td>{{ mask(persona.cognome + ' ' + persona.nome, persona.matricola) }}</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div v-else class="table-scroll">
+                <table class="bookings-table">
+                    <thead>
+                        <tr><th>Matricola</th><th>Nome Cognome</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(persona, idx) in idoneiList" :key="idx" 
+                            :class="{ 'highlight-user': user.matricola && String(persona.matricola) === String(user.matricola) }">
+                            <td>{{ persona.matricola }}</td>
+                            <td>{{ mask(persona.cognome + ' ' + persona.nome, persona.matricola) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
             <!-- TERZA PAGINA:  Seleziona una pagina -->
         </div>
@@ -426,33 +428,35 @@
                 <input type="file" ref="fileInput" @change="handleFileUpload" style="display:none" />
             </div>
 
-            <table class="bookings-table">
-                <thead>
-                    <tr><th>Ora</th><th>N.</th><th>Prenotazioni</th><th>Posti</th></tr>
-                </thead>
-                <tbody>
-                    <tr v-for="slot in slots" :key="slot.id">
-                        <td>{{ slot.id===8 ? 'Riserve' : slot.label }}</td>
-                        <td><div v-for="j in seatsPerSlot" :key="j">{{ slot.id*seatsPerSlot + j }}</div></td>
-                        <td>
-                            <div v-for="b of bookingsBySlot[slot.id]" :key="b.key" class="prenotazione-nome"
-                                 :class="{ 'user-booking': user.matricola && String(b.matricola) === String(user.matricola) }">
-                                <span>{{ b.matricola }} {{ isAdmin ? b.name : mask(b.name, b.matricola) }}</span>
-                                <button v-if="isAdmin" @click="removeBooking(b.key)">Cancella</button>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="seats-badge" :class="{
-                                'seats-many': remaining(slot) > 3,
-                                'seats-few': remaining(slot) > 0 && remaining(slot) <= 3,
-                                'seats-none': remaining(slot) === 0 && slot.id !== 8
-                            }">
-                                {{ remaining(slot) }} {{ remaining(slot)===1 ? 'posto' : 'posti' }}
-                            </span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-scroll">
+                <table class="bookings-table">
+                    <thead>
+                        <tr><th>Ora</th><th>N.</th><th>Prenotazioni</th><th>Posti</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="slot in slots" :key="slot.id">
+                            <td>{{ slot.id===8 ? 'Riserve' : slot.label }}</td>
+                            <td><div v-for="j in seatsPerSlot" :key="j">{{ slot.id*seatsPerSlot + j }}</div></td>
+                            <td>
+                                <div v-for="b of bookingsBySlot[slot.id]" :key="b.key" class="prenotazione-nome"
+                                     :class="{ 'user-booking': user.matricola && String(b.matricola) === String(user.matricola) }">
+                                    <span>{{ b.matricola }} {{ isAdmin ? b.name : mask(b.name, b.matricola) }}</span>
+                                    <button v-if="isAdmin" @click="removeBooking(b.key)">Cancella</button>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="seats-badge" :class="{
+                                    'seats-many': remaining(slot) > 3,
+                                    'seats-few': remaining(slot) > 0 && remaining(slot) <= 3,
+                                    'seats-none': remaining(slot) === 0 && slot.id !== 8
+                                }">
+                                    {{ remaining(slot) }} {{ remaining(slot)===1 ? 'posto' : 'posti' }}
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- MODALE PERSONALIZZATO -->

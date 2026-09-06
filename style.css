@@ -702,6 +702,19 @@ table {
     box-shadow: var(--shadow-sm);
 }
 
+.table-scroll {
+    width: 100%;
+    max-width: 100%;
+    margin-top: 20px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll table {
+    min-width: 600px; /* mantiene le colonne leggibili, scorre invece di schiacciarsi */
+    margin-top: 0;
+}
+
 th, 
 td { 
     padding: 12px; 
@@ -1037,6 +1050,10 @@ tr:nth-child(odd) {
     /* Fix per pagina idonei su mobile */
     #app.idoneiPage .btn-refresh {
         margin-bottom: 15px !important;
+    }
+    
+    .table-scroll table {
+        min-width: 480px;
     }
     
     /* Layout a colonna singola su mobile */
