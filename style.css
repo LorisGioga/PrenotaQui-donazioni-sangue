@@ -684,12 +684,14 @@ nav.top-nav {
 
 .admin-actions { 
     display: flex; 
+    flex-wrap: wrap;
     gap: 10px; 
     margin-top: 00px; 
 }
 
 .admin-actions button { 
-    flex: 1; 
+    flex: 1 1 auto; 
+    min-width: 0;
 }
 
 table { 
