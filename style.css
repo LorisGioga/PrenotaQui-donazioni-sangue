@@ -1102,7 +1102,13 @@ tr:nth-child(odd) {
         font-size: 0.9em;
     }
     
-    /* Pulsanti con frecce più compatti su mobile */
+    /* Campi admin prenotazione (Matricola / Cognome Nome) in colonna su mobile */
+    .admin-booking-fields input {
+        width: 100% !important;
+        display: block !important;
+        margin-right: 0 !important;
+    }
+    
     .btn-forward,
     .btn-back {
         font-size: 0.95em !important;

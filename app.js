@@ -27,6 +27,7 @@ const firebaseConfig = {
 // 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+auth.languageCode = 'it'; // Forza l'italiano nelle email di Firebase (reset password, ecc.)
 const db = getDatabase(app);
 //
 //=====================================================================
@@ -252,6 +253,9 @@ createApp({
     
     const mask = (name, matricola) => {
       if (!name) return '';
+      if (isAdmin.value) {
+        return name;
+      }
       if (user.matricola && String(matricola) === String(user.matricola)) {
         return name;
       }

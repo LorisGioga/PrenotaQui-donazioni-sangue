@@ -219,7 +219,7 @@
             <nav class="top-nav">
                 <div></div>
                 <div>
-                    <button @click="adminLogin()" class="btn-admin">Area Riservata</button>
+                    <button v-if="!isAdmin" @click="adminLogin()" class="btn-admin">Area Riservata</button>
                     <button class="exit" @click="logout()">Esci</button>
                 </div>
             </nav>
