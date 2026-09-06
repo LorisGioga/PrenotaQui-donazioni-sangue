@@ -7,6 +7,16 @@ e questo progetto aderisce al [Semantic Versioning](https://semver.org/lang/it/)
 
 ---
 
+## [2.3] - 2026-09-06
+### Modificato
+- I contatti del gruppo (email, telefono, WhatsApp, indirizzo, sito) non sono più mostrati in una barra fissa su tutte le pagine, ma solo come box "Contatti del Gruppo" nella landing page di login.
+
+### Aggiunto
+- Recupero password: link "Password dimenticata?" nella pagina di login, che invia l'email di reset tramite Firebase Auth.
+
+
+
+
 ## [2.2.0] - 2026-02-07
 
 ### 🐛 Bug Fix & Stability Release - FIXED VERSION
