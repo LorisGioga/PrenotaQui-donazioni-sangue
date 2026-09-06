@@ -79,6 +79,9 @@
                     <input type="password" v-model="user.password" placeholder="Password" 
                            @keyup.enter="login()"
                            class="landing-input">
+                    <div class="forgot-password-row">
+                        <a href="#" @click.prevent="resetPassword()" class="forgot-password-link">Password dimenticata?</a>
+                    </div>
                     <button @click="login()" class="landing-login-btn">Accedi</button>
                     
                     <div class="register-prompt">
@@ -87,6 +90,34 @@
                     </div>
                 </div>
                 
+            </div>
+
+            <!-- CONTATTI DEL GRUPPO - Visibili solo nella prima pagina -->
+            <div v-if="footerContacts.email || footerContacts.phone || footerContacts.whatsapp || footerContacts.address || footerContacts.website"
+                 class="landing-contacts-card">
+                <h3 style="text-align: center; margin-top: 5px;">Contatti del Gruppo</h3>
+                <div class="landing-contacts-content">
+                    <div class="footer-item" v-if="footerContacts.email">
+                        <span class="footer-icon">📧</span>
+                        <span class="footer-text">{{ footerContacts.email }}</span>
+                    </div>
+                    <div class="footer-item" v-if="footerContacts.phone">
+                        <span class="footer-icon">📱</span>
+                        <span class="footer-text">{{ footerContacts.phone }}</span>
+                    </div>
+                    <div class="footer-item" v-if="footerContacts.whatsapp">
+                        <span class="footer-icon">💬</span>
+                        <span class="footer-text">{{ footerContacts.whatsapp }}</span>
+                    </div>
+                    <div class="footer-item" v-if="footerContacts.address">
+                        <span class="footer-icon">📍</span>
+                        <span class="footer-text">{{ footerContacts.address }}</span>
+                    </div>
+                    <div class="footer-item" v-if="footerContacts.website">
+                        <span class="footer-icon">🌐</span>
+                        <span class="footer-text">{{ footerContacts.website }}</span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -320,7 +351,7 @@
                 
                 <h3>Gestione Footer - Informazioni Contatto</h3>
                 <p style="font-size:0.9em; color:#6B7280; margin-bottom:15px;">
-                    Le informazioni verranno mostrate nella barra footer in basso. Lascia vuoto per nascondere.
+                    Le informazioni verranno mostrate come box "Contatti del Gruppo" solo nella prima pagina (login). Lascia vuoto per nascondere.
                 </p>
                 
                 <h4 style="margin-top:20px; color: var(--fidas-blue);">Contatti Footer</h4>
@@ -436,32 +467,6 @@
                 </div>
             </div>
         </div>
-
-    <!-- FOOTER BAR FISSA -->
-    <footer class="global-footer">
-        <div class="footer-content">
-            <div class="footer-item" v-if="footerContacts.email">
-                <span class="footer-icon">📧</span>
-                <span class="footer-text">{{ footerContacts.email }}</span>
-            </div>
-            <div class="footer-item" v-if="footerContacts.phone">
-                <span class="footer-icon">📱</span>
-                <span class="footer-text">{{ footerContacts.phone }}</span>
-            </div>
-            <div class="footer-item" v-if="footerContacts.whatsapp">
-                <span class="footer-icon">💬</span>
-                <span class="footer-text">{{ footerContacts.whatsapp }}</span>
-            </div>
-            <div class="footer-item" v-if="footerContacts.address">
-                <span class="footer-icon">📍</span>
-                <span class="footer-text">{{ footerContacts.address }}</span>
-            </div>
-            <div class="footer-item" v-if="footerContacts.website">
-                <span class="footer-icon">🌐</span>
-                <span class="footer-text">{{ footerContacts.website }}</span>
-            </div>
-        </div>
-    </footer>
 
     </div>
 

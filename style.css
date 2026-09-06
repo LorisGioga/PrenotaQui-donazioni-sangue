@@ -58,51 +58,42 @@ p {
 }
 
 /* ================================================= */
-/* FOOTER BAR FISSO */
+/* CONTATTI DEL GRUPPO - Solo nella prima pagina (landing) */
+/* Sostituisce la vecchia barra footer fissa su tutte le pagine */
 /* ================================================= */
-.global-footer {
-    background: linear-gradient(135deg, #505050 0%, #2a2a2a 100%);
-    color: var(--fidas-white);
-    padding: 12px 30px;
-    width: 100%;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    z-index: 999;
-    box-shadow: 0 -2px 8px rgba(0,0,0,0.15);
-    border-top: 2px solid rgba(255,255,255,0.1);
+.landing-contacts-card {
+    margin: 40px auto 20px auto;
+    max-width: 1100px;
+    padding: 30px 35px;
+    background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(0,61,122,0.1);
 }
 
-.footer-content {
-    max-width: 1400px;
-    margin: 0 auto;
+.landing-contacts-content {
     display: flex;
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
     gap: 25px;
+    margin-top: 15px;
 }
 
-.footer-item {
+.landing-contacts-content .footer-item {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 0.95em;
-}
-
-.footer-icon {
     font-size: 1.1em;
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
 }
 
-.footer-text {
-    color: #e0e0e0;
+.landing-contacts-content .footer-icon {
+    font-size: 1.3em;
+}
+
+.landing-contacts-content .footer-text {
+    color: var(--fidas-dark);
     font-weight: 500;
-}
-
-/* Spazio per il footer in fondo alla pagina */
-body {
-    padding-bottom: 60px; /* Spazio per footer fisso */
 }
 
 #app.landing.privacy-text {
@@ -188,6 +179,22 @@ body {
     outline: none !important;
     border-color: var(--fidas-blue) !important;
     box-shadow: 0 0 0 3px rgba(0,61,122,0.1) !important;
+}
+
+.forgot-password-row {
+    text-align: right;
+    margin: -4px 0 10px 0;
+}
+
+.forgot-password-link {
+    color: var(--fidas-blue);
+    font-size: 0.9em;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.forgot-password-link:hover {
+    text-decoration: underline;
 }
 
 .landing-login-btn {
@@ -1013,24 +1020,16 @@ tr:nth-child(odd) {
         padding: 9px 15px; /* Proportionally reduced */
     }
     
-    /* Footer responsive */
-    .global-footer {
-        padding: 10px 15px;
+    /* Box contatti su mobile: colonna singola */
+    .landing-contacts-card {
+        padding: 20px;
+        margin: 25px auto;
     }
-    
-    .footer-content {
+
+    .landing-contacts-content {
         flex-direction: column;
-        gap: 8px;
-        text-align: center;
-    }
-    
-    .footer-item {
-        font-size: 0.75em;
-        gap: 6px;
-    }
-    
-    body {
-        padding-bottom: 180px; /* Più spazio per footer multiriga su mobile */
+        gap: 10px;
+        align-items: flex-start;
     }
     
     /* Pulsanti con frecce più compatti su mobile */

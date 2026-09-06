@@ -5,7 +5,7 @@
 // ===================================================================
 //
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js';
 import { getDatabase, ref, push, onValue, set, get, child, remove, update } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js';
 
 const { createApp, reactive, ref: vueRef } = Vue;
@@ -344,6 +344,29 @@ createApp({
       } catch (error) {
         console.error("Errore login:", error);
         await showAlert(`Errore durante l\'accesso: ${error.message}`);
+      }
+    }
+
+    // NUOVA FUNZIONE: Recupero password tramite email nativa di Firebase Auth
+    async function resetPassword() {
+      let email = user.email && user.email.trim();
+
+      if (!email) {
+        email = await showPrompt('Inserisci la tua email per ricevere il link di reimpostazione password:');
+        if (!email) return; // utente ha annullato
+        email = email.trim();
+      }
+
+      try {
+        await sendPasswordResetEmail(auth, email);
+        await showAlert(`Ti abbiamo inviato una email a ${email} con le istruzioni per reimpostare la password. Controlla anche nella cartella Spam/Posta indesiderata.`);
+      } catch (error) {
+        console.error("Errore invio email di reset password:", error);
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-email') {
+          await showAlert('Non troviamo nessun account registrato con questa email. Verifica di averla scritta correttamente.');
+        } else {
+          await showAlert(`Errore durante l'invio dell'email di reset: ${error.message}`);
+        }
       }
     }
 
@@ -838,7 +861,7 @@ createApp({
       view, user, booking, slots, bookingsBySlot, seatsPerSlot, pageNames, texts, blocks, isAdmin, adminPass, newPageName,
       idoneiList, idoneiTitle, fileInputIdonei, isRegistering,
       landingLinks, donationDates, medicoEmail, footerContacts,
-      remaining, mask, register, login, logout, enterPage, loadBookings, confirmBook, adminLogin, exitAdmin, 
+      remaining, mask, register, login, resetPassword, logout, enterPage, loadBookings, confirmBook, adminLogin, exitAdmin, 
       updatePageName, updateText, updateBlock, updateAdminPass, updateSeatsPerSlot, removeBooking, resetAll, exportExcel, 
       importExcel, handleFileUpload, focusNext, fileInput, 
       addPage, removePage,
