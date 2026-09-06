@@ -58,11 +58,11 @@
                     <!-- Info Medico - MODIFICATO: Layout orizzontale E in fondo grazie a margin-top: auto -->
                     <div v-if="medicoEmail" class="card-footer medico-info">
                         <hr style="margin: 15px 0 25px 0; border-color: #ddd;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="color: #6B7280; font-size: 0.9em; white-space: nowrap;">
+                        <div class="medico-info-row">
+                            <span class="medico-info-label">
                                 Email Medico Responsabile:
                             </span>
-                            <span style="color: #212529; font-size: 1.05em; font-weight: 500;">
+                            <span class="medico-info-value">
                                 {{ medicoEmail }}
                             </span>
                         </div>

@@ -121,6 +121,8 @@ p {
     gap: 30px;
     margin: 40px auto;
     max-width: 1100px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* Box sinistro e destro con stesso stile */
@@ -131,6 +133,9 @@ p {
     border-radius: 16px;
     box-shadow: var(--shadow-lg);
     border: 1px solid rgba(0,61,122,0.1);
+    box-sizing: border-box;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 /* FLEXBOX PER POSIZIONARE IL MEDICO IN FONDO */
@@ -163,11 +168,31 @@ p {
     color: var(--fidas-dark);
     font-weight: 500;
     box-shadow: 0 1px 3px rgba(0,0,0,0.08); /* Subtle shadow */
+    overflow-wrap: anywhere;
 }
 
 /* Medico Info - plain text, no link */
 .medico-info p {
     cursor: default; /* No pointer cursor */
+}
+
+.medico-info-row {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.medico-info-label {
+    color: #6B7280;
+    font-size: 0.9em;
+}
+
+.medico-info-value {
+    color: #212529;
+    font-size: 1.05em;
+    font-weight: 500;
+    overflow-wrap: anywhere;
 }
 
 /* ================================================= */
