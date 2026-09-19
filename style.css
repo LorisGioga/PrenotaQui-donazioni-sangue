@@ -12,6 +12,8 @@
     --fidas-light-gray: #e8e8e8;
     --fidas-dark: #212529;
     --fidas-white: #ffffff;
+    --fidas-black: #000000;          /* nuovo */
+    --fidas-light-white: #f8f9fa;    /* nuovo */
     --fidas-container: #ffffff;
     --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
     --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
@@ -85,16 +87,20 @@ p {
 
 .landing-contacts-content .footer-item {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 8px;
     font-size: 0.95em;
     max-width: 100%;
     min-width: 0;
+    line-height: 1.4;
 }
 
 .landing-contacts-content .footer-icon {
     font-size: 1.1em;
     flex-shrink: 0;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
 }
 
 .landing-contacts-content .footer-text {
@@ -161,13 +167,13 @@ p {
 
 .date-item {
     padding: 10px 18px; /* Reduced for compact layout */
-    background: #f8f9fa; /* Solid color like login inputs */
-    border: 1px solid rgba(0,61,122,0.1); /* Same border as boxes */
-    border-radius: 8px; /* Match box style */
-    font-size: 1em; /* Slightly reduced */
+    background: #f8f9fa;
+    border: 1px solid rgba(0,61,122,0.1);
+    border-radius: 8px;
+    font-size: 1em;
     color: var(--fidas-dark);
     font-weight: 500;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08); /* Subtle shadow */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     overflow-wrap: anywhere;
 }
 
@@ -273,21 +279,23 @@ p {
 }
 
 .register-btn {
-    background: linear-gradient(to bottom, #f5f5f5 0%, var(--fidas-light-gray) 100%) !important;
-    color: var(--fidas-dark) !important;
-    padding: 14px 35px !important;
-    font-size: 1.1em !important;
-    border: 2px solid #bbb !important;
-    border-radius: 8px !important;
+    width: 100% !important;
+    background: var(--fidas-light-white) !important;
+    color: var(--fidas-black) !important;
+    padding: 18px !important;
+    margin: 0 !important;
+    font-size: 1em !important;        /* più piccolo di 1.3em di "Accedi" */
+    border: 2px solid var(--fidas-blue) !important;
+    border-radius: 10px !important;
     cursor: pointer;
     transition: var(--transition) !important;
-    font-weight: 600 !important;
+    font-weight: 600 !important;      /* meno bold di 700/"bold" di Accedi */
+    letter-spacing: 0.5px;
 }
 
 .register-btn:hover {
-    background: linear-gradient(to bottom, var(--fidas-light-gray) 0%, #d5d5d5 100%) !important;
-    border-color: #999 !important;
-    transform: translateY(-1px);
+    background: rgba(0,61,122,0.05) !important;
+    transform: translateY(-2px);
     box-shadow: var(--shadow-sm) !important;
 }
 
@@ -358,7 +366,7 @@ body {
     margin: 30px auto;
     padding: 35px; 
     background: var(--fidas-container); /* Sfondo bianco  --fidas-white */
-    border-radius: 12px;
+    border-radius: 16px;
     box-shadow: var(--shadow-md);
     overflow-x: hidden;
 }
@@ -366,6 +374,8 @@ body {
 .privacy-text {
   text-align: justify;
   text-justify: inter-word;
+  font-size: 0.9em;
+  line-height: 1.5;
 }
 
 /* ================================================= */
@@ -384,7 +394,7 @@ h2 {
     text-align: center;
     margin-top: 10px;
     margin-bottom: 10px;
-    color: var(--fidas-red);
+    color: var(--fidas-blue);
     font-weight: 600;
 }
 
@@ -398,7 +408,7 @@ h3 {
 h4 {
     font-size: 1.1em;
     margin-top: 10px;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
 }
 
 h5, h6, p {
@@ -419,6 +429,17 @@ h5, h6, p {
     font-weight: 700;
     margin-bottom: 40px;
 }
+
+
+.version-badge {
+
+    font-size: 0.4em;
+    font-weight: 700;
+    margin-left: 6px;
+    color: var(--fidas-gray);
+    
+}
+
 
 #app.landing .privacy-text {
     text-align: left;
@@ -455,6 +476,8 @@ h5, h6, p {
     text-align: left;
 }
 
+
+
 /* --- D. Vista PAGE 1 / PAGE 2 --- */
 #app.page1 .main-title,
 #app.page2 .main-title {
@@ -471,6 +494,30 @@ h5, h6, p {
     margin-bottom: 25px;
     border-bottom: 3px solid var(--fidas-green);
     padding-bottom: 10px;
+}
+/* --- aggiunta il 14/09/2026 .session-title --- */
+.session-title {
+    text-align: left;
+    font-size: 1.6em;
+    margin-bottom: 25px;
+    color: var(--fidas-blue);
+}
+
+.session-label {
+    font-weight: 400;
+    color: var(--fidas-gray);
+    margin-right: 6px;
+}
+.idonei-title {
+     
+   
+    text-align: left;
+    border-radius: 10px;
+    padding: 10px 20px;
+    color: var(--fidas-blue);
+    font-size: 1.6em;
+    font-weight: 700;
+    margin-bottom: 20px;
 }
 
 /* ================================================= */
@@ -654,18 +701,6 @@ input[type="text"]:disabled {
     cursor: not-allowed;
 }
 
-select.slot-select {
-    font-size: 1.15em;
-    font-weight: 500;
-    padding: 18px;
-    cursor: pointer;
-}
-
-select.slot-select option:disabled {
-    color: #999;
-    font-style: italic;
-}
-
 nav.top-nav { 
     display: flex; 
     justify-content: space-between; 
@@ -835,6 +870,117 @@ tr:nth-child(odd) {
     font-weight: bold !important;
     font-size: 1.1em !important;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+/* 1. Contenitore principale flessibile */
+.idonei-columns {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Allinea le due tabelle perfettamente in alto */
+    gap: 20px;
+    max-width: 1200px; /* Puoi regolare questo valore per stringere/allargare l'insieme */
+    margin: 20px auto 0 auto;
+}
+
+/* 2. Le due tabelle */
+.idonei-columns .idonei-table {
+    flex: 1 !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    table-layout: fixed !important;
+    margin: 0;
+    border-collapse: collapse;
+}
+
+/* 3. Intestazione: altezza fissa sincronizzata */
+.idonei-table th {
+    height: 48px !important;
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+
+/* 4. Celle del corpo: altezza fissa sincronizzata */
+.idonei-table td {
+    height: 44px !important;
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+
+/* 5. Colonna MATRICOLA */
+.idonei-table th:first-child,
+.idonei-table td:first-child {
+    width: 180px !important; /* Mantenuto il tuo valore a 180px */
+    text-align: center;
+}
+
+/* 6. Colonna NOME */
+.idonei-table th:last-child,
+.idonei-table td:last-child {
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media screen and (max-width: 700px) {
+    .idonei-columns {
+        flex-direction: column;
+        max-width: 100%;
+        gap: 0;
+    }
+}
+    /* Regola SOLO per PC/Desktop (schermi più larghi di 700px) */
+@media screen and (min-width: 701px) {
+    select.slot-select {
+        font-size: 1.15em !important;
+        font-weight: 500 !important;
+        padding: 18px !important;
+        cursor: pointer !important;
+    }
+
+    select.slot-select option {
+        font-size: 1em !important;
+    }
+}
+
+/* Regola SOLO per Smartphone (schermi fino a 700px) */
+@media screen and (max-width: 700px) {
+    select.slot-select {
+        font-size: 0.9em !important;
+        font-weight: 500 !important;
+        padding: 10px 12px !important;
+        cursor: pointer !important;
+    }
+
+    select.slot-select option {
+        font-size: 0.85em !important;
+    }
+}
+
+/* Opzioni disabilitate (vale per tutti) */
+select.slot-select option:disabled {
+    color: #999;
+    font-style: italic;
+}
+  
+
+.idonei-table th:last-child,
+.idonei-table td:last-child {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.table-scroll table.prenotazioni-table {
+    min-width: 320px;
+}
+
+.prenotazioni-table th:first-child,
+.prenotazioni-table td:first-child {
+    width: 280px; /* era 80px aumentando allarga la colonna dell'ora in prenotazioni*/
+    white-space: normal;
+}
+css
+.prenotazioni-table td:first-child span.orario {
+    white-space: nowrap;
 }
 
 /* ================================================= */
@@ -1031,6 +1177,9 @@ tr:nth-child(odd) {
         font-size: 1.6em;
     }
     
+    h4 {
+    font-size: 0.95em;
+  }
     .seats-badge {
         font-size: 0.85em;
         padding: 5px 10px;
