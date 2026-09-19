@@ -670,6 +670,7 @@ button.admin-exit {
 
 button.admin-exit:hover {
     background: linear-gradient(135deg, #f57c00 0%, var(--fidas-orange) 100%);
+    
 }
 
 input[type="text"], 
@@ -931,7 +932,7 @@ tr:nth-child(odd) {
     /* Regola SOLO per PC/Desktop (schermi più larghi di 700px) */
 @media screen and (min-width: 701px) {
     select.slot-select {
-        font-size: 1.15em !important;
+        font-size: 1.05em !important;
         font-weight: 500 !important;
         padding: 18px !important;
         cursor: pointer !important;
@@ -945,7 +946,7 @@ tr:nth-child(odd) {
 /* Regola SOLO per Smartphone (schermi fino a 700px) */
 @media screen and (max-width: 700px) {
     select.slot-select {
-        font-size: 0.9em !important;
+        font-size: 0.8em !important;
         font-weight: 500 !important;
         padding: 10px 12px !important;
         cursor: pointer !important;

@@ -257,18 +257,24 @@
 
             <!-- TERZA PAGINA:  Area Riservata per Modificare  -->
             <div v-if="isAdmin" class="admin-settings">
-                
+                <p>&nbsp;&nbsp;&nbsp;</p>
+                <hr>
+                <hr>
+                <h2 style="margin-top:25px; margin-bottom:20px;  text-align:center; color:var(--fidas-blue);">Gestione Pagine </h2>
+                <hr>
+                <hr>
+                <p>&nbsp;&nbsp;&nbsp;</p>
                 <div class="admin-section-header">
-                    <h3>Gestione Pagine</h3>
+                    <h3>Aggiungi Nuova Pagina</h3>
                     <button class="admin-exit" @click="exitAdmin()">Esci Area Riservata</button>
                 </div>
                 
-                <label>Aggiungi Nuova Pagina:</label>
+                <!-- <label>Pagina delle prenotazioni :</label> -->
                 <input type="text" v-model="newPageName" placeholder="Nome nuova pagina (es. Gennaio)">
                 <button @click="addPage()">Aggiungi Pagina</button>
                 <p>&nbsp;&nbsp;&nbsp;</p>
                 <hr>
-                
+                <hr>
                 <h3>Rinomina Pagine</h3>
                 <div v-for="(name, key, index) in pageNames" :key="key" class="page-management-row">
                     <label>Pagina {{ index + 1 }}:</label>
