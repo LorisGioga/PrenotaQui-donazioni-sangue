@@ -457,7 +457,7 @@
                                 <template v-if="slot.id===8">Riserve</template>
                                 <template v-else>{{ slot.label.split(': ')[0] }}:<br><span class="orario">{{ slot.label.split(': ')[1] }}</span></template>
                             </td>
-                            <td><div v-for="j in seatsPerSlot" :key="j">{{ slot.id*seatsPerSlot + j }}</div></td>
+                            <td><div class="seat-number" v-for="j in seatsPerSlot" :key="j">{{ slot.id*seatsPerSlot + j }}</div></td>
                             <td>
                                 <div v-for="b of bookingsBySlot[slot.id]" :key="b.key" class="prenotazione-nome"
                                      :class="{ 'user-booking': user.matricola && String(b.matricola) === String(user.matricola) }">

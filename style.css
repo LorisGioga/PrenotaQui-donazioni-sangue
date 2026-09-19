@@ -955,6 +955,13 @@ tr:nth-child(odd) {
         font-size: 0.85em !important;
     }
 }
+/* regola per allargare gli spazi nella tabella prenotazioni) */
+.seat-number,
+.prenotazione-nome {
+    min-height: 27px;
+    display: flex;
+    align-items: center;
+}
 
 /* Opzioni disabilitate (vale per tutti) */
 select.slot-select option:disabled {
