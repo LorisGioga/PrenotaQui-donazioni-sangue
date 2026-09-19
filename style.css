@@ -925,7 +925,7 @@ tr:nth-child(odd) {
     .idonei-columns {
         flex-direction: column;
         max-width: 100%;
-        gap: 30px;
+        gap: 50px;
     }
 }
     /* Regola SOLO per PC/Desktop (schermi più larghi di 700px) */
@@ -969,30 +969,47 @@ select.slot-select option:disabled {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+/* Tabella principale prenotazioni */
 .table-scroll table.prenotazioni-table {
-    min-width: 320px;
-    table-layout: fixed;
-    width: 100%;
+    min-width: 600px !important;
+    max-width: 1150px !important; /* Ridotto per non far allargare troppo la tabella */
+    table-layout: fixed !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
 }
 
-.prenotazioni-table th:nth-child(1),
-.prenotazioni-table td:nth-child(1) {
-    width: 110px;
-    white-space: normal;
+/* 1ª Colonna: ORA */
+.table-scroll table.prenotazioni-table th:nth-child(1),
+.table-scroll table.prenotazioni-table td:nth-child(1) {
+    width: 120px !important;
+    white-space: normal !important;
+    text-align: center !important;
 }
 
-.prenotazioni-table th:nth-child(2),
-.prenotazioni-table td:nth-child(2) {
-    width: 50px;
+/* 2ª Colonna: N. (Numero) */
+.table-scroll table.prenotazioni-table th:nth-child(2),
+.table-scroll table.prenotazioni-table td:nth-child(2) {
+    width: 40px !important;
+    text-align: center !important;
 }
 
-.prenotazioni-table th:nth-child(4),
-.prenotazioni-table td:nth-child(4) {
-    width: 90px;
+/* 3ª Colonna: PERSONE (Ristretta) */
+.table-scroll table.prenotazioni-table th:nth-child(3),
+.table-scroll table.prenotazioni-table td:nth-child(3) {
+    width: 150px !important; /* Forza una larghezza compatta per la colonna persone */
+    overflow-wrap: break-word !important;
+}
+
+/* 4ª Colonna: POSTI (Allargata per 'COMPLETO') */
+.table-scroll table.prenotazioni-table th:nth-child(4),
+.table-scroll table.prenotazioni-table td:nth-child(4) {
+    width: 170px !important; /* Dà abbastanza spazio al badge COMPLETO */
+    text-align: center !important;
 }
 
 .prenotazioni-table td:first-child span.orario {
-    white-space: nowrap;
+    white-space: nowrap !important;
 }
 
 /* ================================================= */
