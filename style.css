@@ -925,7 +925,7 @@ tr:nth-child(odd) {
     .idonei-columns {
         flex-direction: column;
         max-width: 100%;
-        gap: 0;
+        gap: 30px;
     }
 }
     /* Regola SOLO per PC/Desktop (schermi più larghi di 700px) */
@@ -971,14 +971,26 @@ select.slot-select option:disabled {
 }
 .table-scroll table.prenotazioni-table {
     min-width: 320px;
+    table-layout: fixed;
+    width: 100%;
 }
 
-.prenotazioni-table th:first-child,
-.prenotazioni-table td:first-child {
-    width: 280px; /* era 80px aumentando allarga la colonna dell'ora in prenotazioni*/
+.prenotazioni-table th:nth-child(1),
+.prenotazioni-table td:nth-child(1) {
+    width: 110px;
     white-space: normal;
 }
-css
+
+.prenotazioni-table th:nth-child(2),
+.prenotazioni-table td:nth-child(2) {
+    width: 50px;
+}
+
+.prenotazioni-table th:nth-child(4),
+.prenotazioni-table td:nth-child(4) {
+    width: 90px;
+}
+
 .prenotazioni-table td:first-child span.orario {
     white-space: nowrap;
 }
