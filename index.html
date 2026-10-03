@@ -1,5 +1,5 @@
 <!--=====================================================================-->
-<!--PrenotaQui 2.1 03/02/2026 -->
+<!--PrenotaQui 2.2 -->
 <!--====================================================================-->
 
 <!DOCTYPE html>
@@ -23,104 +23,111 @@
 
     <div id="app" class="container" :class="view" v-cloak> 
      
-        <!-- PRIMA PAGINA:  Titolo e informativa PRIVACY -->
+        <!-- PRIMA PAGINA: solo login -->
         <div v-if="view==='landing'">
-            <h1 class="main-title">
-                PrenotaQui <span class="version-badge">V2</span>
-            </h1>
-                       
-            <h2>Web App - Prenotazioni Online</h2>
-            <p>&nbsp;&nbsp;&nbsp;</p>
-            <hr>
-            <h4>INFORMATIVA SULLA GESTIONE DEI DATI PERSONALI DEI DONATORI:</h4>
+            <div class="app-brand">
+                <img src="logo-prenotaqui-icon.png" alt="" class="app-brand-logo">
+                <span class="app-brand-wordmark">
+                    <span class="wordmark-prenota">Prenota</span><span class="wordmark-qui">Qui</span>
+                </span>
+                <span class="app-brand-version">v2</span>
+            </div>
             
-            <p class="privacy-text">Ai sensi del Regolamento (UE) 2016/679 (GDPR), informiamo che i dati personali inseriti nel presente modulo di prenotazione sono trattati esclusivamente per finalità organizzative legate alla donazione di sangue. Il trattamento è svolto da persone autorizzate dal Presidente del Gruppo FIDAS San Giusto, Titolare del trattamento, nell'ambito delle attività associative e in conformità all'informativa sottoscritta dal donatore al momento dell'iscrizione alla FIDAS. I dati raccolti non saranno utilizzati per altri scopi e non saranno comunicati a soggetti terzi, salvo obblighi di legge. Il trattamento avviene nel rispetto delle misure di sicurezza previste dalla normativa vigente. Per ulteriori informazioni sul trattamento dei dati, è possibile consultare l'Informativa Privacy FIDAS disponibile presso la sede o richiederne copia al momento della donazione.</p>
-            
-            <h5>Prenotandoti, DICHIARI di aver preso visione di questa informativa.</h5>
-            <hr> 
-            
-            <!-- LAYOUT A DUE COLONNE -->
-            <div class="two-column-layout">
-                
-                <!-- BOX SINISTRO: DATE E MEDICO (con flexbox per mettere medico in fondo) -->
-                <div class="info-box card-calendario">
-                    <!-- Date Donazioni -->
-                    <div>
-                        <h3 style="text-align: center; margin-bottom: 20px; margin-top: 5px; color: var(--fidas-black);">Calendario Donazioni</h3>
-                        <div class="donation-dates">
-                            <div v-for="(date, index) in donationDates.filter(d => d && d.trim() !== '')" :key="index" class="date-item">
-                                📅 {{ date }}
-                            </div>
-                            <p v-if="donationDates.filter(d => d && d.trim() !== '').length === 0" 
-                               style="color: #999; font-style: italic; text-align: center;">
-                                Nessuna data disponibile al momento.
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <!-- Info Medico - MODIFICATO: Layout orizzontale E in fondo grazie a margin-top: auto -->
-                    <div v-if="medicoEmail" class="card-footer medico-info">
-                        <hr style="margin: 15px 0 25px 0; border-color: #ddd;">
-                        <div class="medico-info-row">
-                            <span class="medico-info-label">
-                                Email Medico Responsabile:
-                            </span>
-                            <span class="medico-info-value">
-                                {{ medicoEmail }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- BOX DESTRO: LOGIN -->
+            <p style="margin-bottom:100px; margin-top: 100px; font-size:1.8em; color: var(--fidas-black); text-align:center;">
+                Prenota la tua Donazione Online
+            </p>  
+                                    
+            <div class="login-single">
                 <div class="login-box">
-                    <h3 style="text-align: center;margin-bottom: 20px; margin-top: 5px; color: var(--fidas-black);">Accedi o Registrati </h3>
-                    <input type="email" v-model="user.email" placeholder="E-mail" 
-                           @keyup.enter="login()"
-                           class="landing-input">
-                    <input type="password" v-model="user.password" placeholder="Password" 
-                           @keyup.enter="login()"
-                           class="landing-input">
+                    <h3 style="text-align: center;margin-bottom: 20px; margin-top: 5px; color: var(--fidas-black);">Accedi </h3>
+                    <input type="email" v-model="user.email" placeholder="E-mail" @keyup.enter="login()" class="landing-input">
+                    <input type="password" v-model="user.password" placeholder="Password" @keyup.enter="login()" class="landing-input">
                     <div class="forgot-password-row">
                         <a href="#" @click.prevent="resetPassword()" class="forgot-password-link">Password dimenticata?</a>
                     </div>
-                    <button @click="login()" class="landing-login-btn">Accedi</button>
-                    
+                    <button @click="login()" class="landing-login-btn">Entra</button>
                     <div class="register-prompt">
                         <p class="register-text">Non hai ancora le credenziali di accesso?<br>Registrati con il tasto "Nuovo Utente"</p>
                         <button @click="view='register'" class="register-btn">Nuovo Utente</button>
                     </div>
                 </div>
-                
+                <p class="privacy-link-row"><a href="#" @click.prevent="showPrivacy = true">📄 Informativa Privacy</a></p>
+            </div>
+        </div>
+
+        <!-- SECONDA PAGINA: HOME (dopo il login) -->
+        <div v-else-if="view==='home'">
+
+            <div class="home-light">
+                <h1 class="main-title home-title">Le nostre Donazioni</h1>
+
+                <div class="home-cards">
+                    <section class="home-card">
+                        <h2>🩸 Donazione di sangue intero</h2>
+                        <p class="sec-sub">Le giornate di donazione del Gruppo FIDAS di San Giusto Canavese</p>
+
+                        <ul class="date-chips" v-if="donationDatesInfo.length">
+                            <li v-for="(d, i) in donationDatesInfo" :key="i" :class="{ next: d.prossima, past: d.passata }">{{ d.testo }}</li>
+                        </ul>
+                        <p v-else class="sec-empty">Nessuna data disponibile al momento.</p>
+
+                        <p class="where" v-if="donationPlace">
+                            📍 <a :href="'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(donationPlace)"
+                                  target="_blank" rel="noopener">{{ donationPlace }}</a>
+                        </p>
+                    </section>
+
+                    <section class="home-card">
+                        <h2>💧 Donazione di plasma</h2>
+                        <p>&nbsp;&nbsp;&nbsp;</p>
+                        <p class="plasma-text">{{ texts.plasma || 'Per la donazione di plasma ci appoggiamo alla sede FIDAS di Rivarolo Canavese. Periodicamente organizziamo trasferte di gruppo per raggiungere insieme la sede.' }}</p>
+                    </section>
+                </div>
+
+                <section class="home-row">
+                    <div>
+                        <h2>Prima di prenotarti</h2>
+                        <p class="sec-sub">ℹ️ Consulta sempre News e Sospensioni.</p>
+                    </div>
+                    <nav class="link-row">
+                        <a v-if="quickLinks.news.url" :href="quickLinks.news.url" target="_blank" rel="noopener">📰 News</a>
+                        <a v-if="quickLinks.sospensioni.url" :href="quickLinks.sospensioni.url" target="_blank" rel="noopener">⏸️ Sospensioni</a>
+                        <a v-if="quickLinks.extra.url" :href="quickLinks.extra.url" target="_blank" rel="noopener">🌐 {{ quickLinks.extra.label || 'Link' }}</a>
+                    </nav>
+                </section>
+
+                <section class="home-row">
+                    <div>
+                        <h2>Hai dubbi sulla tua idoneità?</h2>
+                        <p class="sec-sub">Scrivi al medico responsabile, indicando sempre nome e cognome, data di nascita, gruppo FIDAS e numero di telefono.</p>
+                    </div>
+                    <div v-if="medicoEmail" class="mail-wrap">
+                        <a class="mail" :href="'mailto:' + medicoEmail">✉️ Scrivi al medico</a>
+                        <span class="mail-addr">{{ medicoEmail }}</span>
+                    </div>
+                </section>
             </div>
 
-            <!-- CONTATTI DEL GRUPPO - Visibili solo nella prima pagina -->
-            <div v-if="footerContacts.email || footerContacts.phone || footerContacts.whatsapp || footerContacts.address || footerContacts.website"
-                 class="landing-contacts-card">
-                <h3 style="text-align: center; margin-top: 5px;">Contatti del Gruppo</h3>
-                <div class="landing-contacts-content">
-                    <div class="footer-item" v-if="footerContacts.email">
-                        <span class="footer-icon">📧 e-mail:</span>
-                        <span class="footer-text">{{ footerContacts.email }}</span>
-                    </div>
-                    <div class="footer-item" v-if="footerContacts.phone">
-                        <span class="footer-icon">📱Telefono:</span>
-                        <span class="footer-text">{{ footerContacts.phone }}</span>
-                    </div>
-                    <div class="footer-item" v-if="footerContacts.whatsapp">
-                        <span class="footer-icon">💬 WhatsApp:</span>
-                        <span class="footer-text">{{ footerContacts.whatsapp }}</span>
-                    </div>
-                    <div class="footer-item" v-if="footerContacts.address">
-                        <span class="footer-icon">📍 Indirizzo:</span>
-                        <span class="footer-text">{{ footerContacts.address }}</span>
-                    </div>
-                    <div class="footer-item" v-if="footerContacts.website">
-                        <span class="footer-icon">🌐 Sito web:</span>
-                        <span class="footer-text">{{ footerContacts.website }}</span>
-                    </div>
+            <!-- Comandi: tra la parte del medico e i contatti -->
+            <nav class="top-nav home-actions">
+                <div></div>
+                <div>
+                    <button @click="view='idoneiPage'" class="btn-forward">Avanti →</button>
+                    <button class="exit" @click="logout()">Esci</button>
                 </div>
-            </div>
+            </nav>
+
+            <!-- Contatti: footer grigio, senza box, poco visibile -->
+            <footer class="landing-footer" v-if="footerContacts.email || footerContacts.phone || footerContacts.whatsapp || footerContacts.address || footerContacts.website">
+                <h4 class="landing-footer-title">Contatti</h4>
+                <div class="landing-contacts-content">
+                    <div class="footer-item" v-if="footerContacts.email"><span class="footer-icon">📧 e-mail:</span> <span class="footer-text">{{ footerContacts.email }}</span></div>
+                    <div class="footer-item" v-if="footerContacts.phone"><span class="footer-icon">📱Telefono:</span> <span class="footer-text">{{ footerContacts.phone }}</span></div>
+                    <div class="footer-item" v-if="footerContacts.whatsapp"><span class="footer-icon">💬 WhatsApp:</span> <span class="footer-text">{{ footerContacts.whatsapp }}</span></div>
+                    <div class="footer-item" v-if="footerContacts.address"><span class="footer-icon">📍 Indirizzo:</span> <span class="footer-text">{{ footerContacts.address }}</span></div>
+                    <div class="footer-item" v-if="footerContacts.website"><span class="footer-icon">🌐 Sito web:</span> <span class="footer-text">{{ footerContacts.website }}</span></div>
+                </div>
+            </footer>
         </div>
 
         <!-- PAGINA REGISTRAZIONE (tutti i campi) -->
@@ -130,7 +137,7 @@
             <p>&nbsp;&nbsp;&nbsp;</p>
             
             <p style="margin-top:20px; font-size:1.0em; color:#6B7280; text-align:left;">
-             I tuoi dati verranno salvati. Clicca su "Continua" per proseguire con la prenotazione.
+             ℹ️ I tuoi dati verranno salvati. Clicca su "Continua" per proseguire con la prenotazione.
             </p>  
              <p style="margin-bottom:20px; font-size:1.0em; color:#6B7280; text-align:left;">
                 Per i futuri accessi, potrai utilizzare direttamente l'area Login.
@@ -143,7 +150,7 @@
                 <input type="text" v-model="user.firstName" placeholder="Nome" required
                   @keydown.tab.prevent="focusNext($event)"
                   @keydown.arrow-down.prevent="focusNext($event)">
-                <input type="text" v-model="user.matricola" placeholder="Matricola" required
+                <input type="text" v-model="user.matricola" placeholder="Matricola, es. 207 " required
                   @keydown.tab.prevent="focusNext($event)"
                   @keydown.arrow-down.prevent="focusNext($event)">
                 <input type="email" v-model="user.email" placeholder="E-mail" required
@@ -156,6 +163,7 @@
             </div>
               
             <p>&nbsp;&nbsp;&nbsp;</p>
+            <p class="privacy-link-row">Registrandoti dichiari di aver preso visione della <a href="#" @click.prevent="showPrivacy = true">Informativa Privacy</a>.</p>
             <button @click="view='landing'" class="btn-back">← Indietro</button>
             <button @click="register()" class="btn-forward">Continua →</button>
              <p style="margin-top:20px; font-size:1em; color:#6B7280; text-align:left;">
@@ -168,42 +176,62 @@
         <div v-else-if="view==='idoneiPage'" :key="'idonei-' + idoneiList.length">
             <h1>Verifica la tua presenza nella lista.</h1>
             
-             <!-- Nav principale per navigazione -->
-            <nav class="top-nav">
+            <!-- sottotitolo data della donazione -->
+            <h2 class="main-title idonei-title">
+            <span class="session-label">Data della Donazione:</span> {{ idoneiTitle }}
+            </h2>
+            <p>&nbsp;&nbsp;&nbsp;</p>          
+            <p style="margin: 100px 0px  0px  30px ; font-size:1em; color:#6B7280; text-align:left;">
+            La tua presenza in lista:
+            </p>  
+                <p v-if="idoneiList.length === 0" style="color:#6B7280; font-style:italic; text-align:center; margin:30px 0;">
+                Nessuna lista disponibile al momento.
+                </p>
+               
+            <div v-else class="idonei-mine">
+                <p v-if="mioIdoneo" class="idonei-mine-line">
+                    <strong>{{ mioIdoneo.matricola }} <span class="nome-cap">{{ mask(mioIdoneo.cognome + ' ' + mioIdoneo.nome, mioIdoneo.matricola).toLowerCase() }}</span></strong>
+                    risulta presente nella lista
+                </p>
+                <p v-else class="idonei-mine-line idonei-mine-no">
+                    La tua matricola non risulta nell'elenco. Se pensi sia un errore, contatta il Gruppo.
+                </p>
+                
+            </div>
+            
+
+            <p>&nbsp;&nbsp;&nbsp;</p>
+            <button @click="forceReloadIdonei()" class="btn-refresh">🔄 Aggiorna Lista</button>
+            
+            
+
+             <p style="margin-top:50px; font-size:1em; color:#6B7280; text-align:left;">
+                ℹ️ La lista viene caricata automaticamente.
+                Se non la visualizzi subito, clicca su "🔄 Aggiorna lista" per ricaricarla.
+            </p>     
+             <p style="margin-top:30px; margin-bottom:50px; font-size:1em; color:#6B7280; text-align:left;">
+             ℹ️ Elenco basato sui dati ufficiali del sistema Pangea ADSP, aggiornato periodicamente dal Gruppo.
+            </p>  
+
+            <!-- Pulsanti di navigazione: tra la tua riga e l'elenco -->
+            <nav class="top-nav idonei-nav">
                 <div></div>
                 <div>
-                    
-                    <button @click="logout()" class="btn-back">← Indietro</button>
+                    <button @click="view='home'" class="btn-back">← Indietro</button>
                     <button @click="view='pageSelect'" class="btn-forward">Avanti →</button>
                     <button v-if="!isAdmin" @click="adminLogin()" class="btn-admin">Area Riservata</button>
                     <button class="exit" @click="logout()">Esci</button>
                 </div>
             </nav>
 
-            <!-- separata per il pulsante Aggiorna -->
-            <h2 class="main-title idonei-title">
-            <span class="session-label">Data della donazione:</span> {{ idoneiTitle }}
-            </h2>
-            <p>&nbsp;&nbsp;&nbsp;</p>
-            <button @click="forceReloadIdonei()" class="btn-refresh">🔄 Aggiorna Lista</button>
+            <!-- Elenco completo a tendina -->
+            <details v-if="idoneiList.length > 0" class="idonei-details">
+                <summary>
+                    <span class="when-closed">Mostra l'elenco completo ({{ idoneiList.length }} persone)</span>
+                    <span class="when-open">Nascondi l'elenco</span>
+                </summary>
 
-             <p style="margin-top:20px; font-size:1em; color:#6B7280; text-align:left;">
-                ℹ️ La lista viene caricata automaticamente.
-                Se non la visualizzi subito, clicca su "🔄 Aggiorna lista" per ricaricarla.
-            </p>     
-             <p style="margin-top:40px; font-size:1em; color:#6B7280; text-align:left;">
-             ℹ️ Elenco basato sui dati ufficiali del sistema Pangea ADSP, aggiornato periodicamente dal Gruppo.
-            </p>  
-             
-             
-            <p v-if="idoneiList.length === 0" style="color:#6B7280; font-style:italic; text-align:center; margin:30px 0;">
-                Nessuna lista disponibile al momento.
-            </p>
-            
-            
-            
-
-            <div v-else class="table-scroll">
+            <div class="table-scroll">
     <div class="idonei-columns">
         <table v-for="colIndex in 2" :key="colIndex" class="bookings-table idonei-table">
             <thead>
@@ -224,12 +252,14 @@
         </table>
     </div>
 </div>
+            </details>
+
 
             <!--3 TERZA PAGINA:  Seleziona una pagina -->
         </div>
 
         <div v-else-if="view==='pageSelect'">
-            <h1 class="main-title">Scegli la giornata della donazione</h1>
+            <h1 class="main-title">Scegli la giornata della Donazione</h1>
             <nav class="top-nav">
                 <div></div>
                 <div>
@@ -255,12 +285,12 @@
             <h3></h3>
             <p></p>
 
-            <!-- TERZA PAGINA:  Area Riservata per Modificare  -->
+            <!-- TERZA PAGINA: ADMIN - Area Riservata per Modificare  -->
             <div v-if="isAdmin" class="admin-settings">
                 <p>&nbsp;&nbsp;&nbsp;</p>
                 <hr>
                 <hr>
-                <h2 style="margin-top:25px; margin-bottom:20px;  text-align:center; color:var(--fidas-blue);">Gestione Pagine </h2>
+                <h2 style="margin-top:25px; margin-bottom:20px;  text-align:center; color:var(--fidas-blue);">Area Riservata - Gestione Pagine </h2>
                 <hr>
                 <hr>
                 <p>&nbsp;&nbsp;&nbsp;</p>
@@ -301,6 +331,8 @@
                 <input class="text-input" v-model="texts.landing" @change="updateText('landing')">
                 <label>Pagina della selezione pagine:</label>
                 <input class="text-input" v-model="texts.pageSelect" @change="updateText('pageSelect')">
+                <label>Testo Informativa Privacy:</label>
+                <textarea class="text-input" v-model="texts.privacy" @change="updateText('privacy')" rows="6"></textarea>
                 <p>&nbsp;&nbsp;&nbsp;</p>
                 <hr>
                 <hr>
@@ -349,14 +381,15 @@
                 <hr>
                 <hr>
                 
-                <h3>Gestione Landing Page</h3>
+                <h3>Gestione Pagina Home</h3>
                 
                 <!-- Date Donazioni -->
-                <h4 style="margin-top:25px; color: var(--fidas-blue);">Prossime Donazioni (max 8)</h4>
+                <h4 style="margin-top:25px; color: var(--fidas-blue);">Prossime Donazioni (max 4)</h4>
                 <p style="font-size:0.9em; color:#6B7280; margin-bottom:15px;">
-                    Le date vengono mostrate solo se non vuote. Lascia vuoto per non visualizzare.
+                    Le date vengono mostrate solo se non vuote. Scrivile in ordine, con giorno, mese e anno (es. 17 Gennaio 2026):
+                     quelle passate diventano grigie e la prima futura viene evidenziata come "Prossima data". Se non sai ancora il giorno puoi scrivere solo mese e anno (es. Gennaio 2027).
                 </p>
-                <div v-for="(date, index) in donationDates" :key="index" style="margin-bottom:10px;">
+                <div v-for="(date, index) in donationDates.slice(0,4)" :key="index" style="margin-bottom:10px;">
                     <label style="display:block; margin-bottom:5px;">Data {{ index + 1 }}:</label>
                     <input type="text" v-model="donationDates[index]" @blur="updateDonationDate(index)" 
                            placeholder="es: 17 Gennaio 2026" class="text-input">
@@ -367,14 +400,46 @@
                 <label style="display:block; margin-bottom:5px;">Email:</label>
                 <input type="email" v-model="medicoEmail" @blur="updateMedicoEmail()" 
                        placeholder="medico@fidas.it" class="text-input">
+
+                <h4 style="margin-top:25px; color: var(--fidas-blue);">Luogo delle donazioni</h4>
+                <label style="display:block; margin-bottom:5px;">Dove si effettuano le donazioni:</label>
+                <input type="text" v-model="donationPlace" @blur="updateDonationPlace()"
+                       placeholder="es: Sede del Gruppo, Via Roma 1, San Giusto Canavese" class="text-input">
+
+                <!-- Testo donazione plasma -->
+                <h4 style="margin-top:25px; color: var(--fidas-blue);">Donazione di plasma</h4>
+                <label style="display:block; margin-bottom:5px;">Testo mostrato nella Home:</label>
+                <textarea class="text-input" v-model="texts.plasma" @change="updateText('plasma')" rows="4"
+                          placeholder="Lascia vuoto per usare il testo predefinito"></textarea>
                 
                 <p>&nbsp;&nbsp;&nbsp;</p>
                 <hr>
                 <hr>
-                
+
+                <!-- pulsanti collegamento -->
+                <h3>Pulsanti Collegamento (News / Sospensioni / Extra)</h3>
+                <label>URL News:</label>
+                <input class="text-input" v-model="quickLinks.news.url" @blur="updateQuickLink('news')">
+                <label>Descrizione News:</label>
+                <input class="text-input" v-model="quickLinks.news.desc" @blur="updateQuickLink('news')">
+                <label>URL Sospensioni:</label>
+                <input class="text-input" v-model="quickLinks.sospensioni.url" @blur="updateQuickLink('sospensioni')">
+                <label>Descrizione Sospensioni:</label>
+                <input class="text-input" v-model="quickLinks.sospensioni.desc" @blur="updateQuickLink('sospensioni')">
+                <label>Testo Pulsante (terzo link):</label>
+                <input class="text-input" v-model="quickLinks.extra.label" @blur="updateQuickLink('extra')" placeholder="es: Modulo Idoneità">
+                <label>URL:</label>
+                <input class="text-input" v-model="quickLinks.extra.url" @blur="updateQuickLink('extra')">
+                <label>Descrizione:</label>
+                <input class="text-input" v-model="quickLinks.extra.desc" @blur="updateQuickLink('extra')">
+                <p>&nbsp;&nbsp;&nbsp;</p>
+                <hr>
+                <hr>
+
+                <!-- gestione footer -->
                 <h3>Gestione Footer - Informazioni Contatto</h3>
                 <p style="font-size:0.9em; color:#6B7280; margin-bottom:15px;">
-                    Le informazioni verranno mostrate come box "Contatti del Gruppo" solo nella prima pagina (login). Lascia vuoto per nascondere.
+                    Le informazioni verranno mostrate come footer "Contatti" in fondo alla pagina Home (dopo il login). Lascia vuoto per nascondere.
                 </p>
                 
                 <h4 style="margin-top:20px; color: var(--fidas-blue);">Contatti Footer</h4>
@@ -404,7 +469,7 @@
 
         <!--4 QUARTA PAGINA:  Prenotazione -->
         <div v-else-if="Object.keys(pageNames).includes(view)"> 
-            <h1 class="main-title">Prenota la tua donazione</h1>
+            <h1 class="main-title">Prenota la tua Donazione</h1>
             <nav class="top-nav">
                 <div></div>
                 <div>
@@ -495,6 +560,17 @@
                 <div class="modal-buttons">
                     <button v-if="modal.type !== 'alert'" @click="modalCancel" class="modal-btn-cancel">Annulla</button>
                     <button @click="modalConfirm" class="modal-btn-ok">{{ modal.type === 'alert' ? 'OK' : 'Conferma' }}</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODALE Privacy (deve stare DENTRO #app, altrimenti Vue non la gestisce) -->
+        <div v-if="showPrivacy" class="modal-overlay" @click.self="showPrivacy = false">
+            <div class="modal-box" style="max-width:700px; max-height:80vh; overflow-y:auto; text-align:left;">
+                <h3 class="modal-title">Informativa Privacy</h3>
+                <p class="modal-message">{{ texts.privacy }}</p>
+                <div class="modal-buttons">
+                    <button @click="showPrivacy = false" class="modal-btn-ok">Chiudi</button>
                 </div>
             </div>
         </div>

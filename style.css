@@ -60,55 +60,140 @@ p {
 }
 
 /* ================================================= */
-/* CONTATTI DEL GRUPPO - Solo nella prima pagina (landing) */
-/* Sostituisce la vecchia barra footer fissa su tutte le pagine */
+/* BRAND APP (nome + logo, come PrenotaQui v3) */
 /* ================================================= */
-.landing-contacts-card {
-    margin: 40px auto 20px auto;
+.app-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0px;
+    margin: 0px auto 60px;
+}
+/* Logo davanti alla scritta PrenotaQui*/
+.app-brand-logo {
+    height: 56px;
+    width: auto;
+    margin-right: -25px;
+   
+}
+/* Scritta PrenotaQui Titolo*/
+.app-brand-wordmark {
+    font-size: 2.9rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+} 
+
+.wordmark-prenota {
+    color: var(--fidas-blue);
+}
+
+.wordmark-qui {
+    color: var(--fidas-red);
+}
+
+.app-brand-version {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--fidas-white);
+    background: var(--fidas-blue);
+    padding: 2px 7px;
+    border-radius: 999px;
+    align-self: flex-start;
+    margin-top: 2px;
+}
+
+/* In landing il brand sostituisce il vecchio titolo grande: lo ingrandisco */
+#app.landing .app-brand {
+    gap: 12px;
+    margin-bottom: 15px;
+}
+#app.landing .app-brand-logo {
+    height: 60px;
+}
+#app.landing .app-brand-wordmark {
+    font-size: 2.4rem;
+}
+#app.landing .app-brand-version {
+    font-size: 0.8rem;
+    padding: 3px 9px;
+}
+
+/* ================================================= */
+/* CONTATTI DEL GRUPPO - Footer della Home (dopo login) */
+/* Non e' piu' un box: sta in fondo, grigio, poco visibile */
+/* ================================================= */
+.landing-footer {
     max-width: 1100px;
     width: 100%;
-    box-sizing: border-box;
-    padding: 30px 35px;
-    background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
-    border-radius: 16px;
-    box-shadow: var(--shadow-lg);
-    border: 1px solid rgba(0,61,122,0.1);
+    margin: 40px auto 0;
+    padding: 25px 18px 0;
+    border-top: 1px solid #e3e6ea;
+    background: none;
+    box-shadow: none;
+    text-align: center;
+    font-size: 0.85em;
+    line-height: 1.5;
+    color: #8b9199;
     overflow-wrap: anywhere;
 }
 
-.landing-contacts-content {
+.landing-footer-title {
+    margin: 0 0 4px;
+    font-size: 0.8em;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #a0a6ad;
+}
+
+.landing-footer .landing-contacts-content {
     display: flex;
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
-    gap: 25px;
-    margin-top: 15px;
+    gap: 8px 22px;
+    margin-top: 6px;
 }
 
-.landing-contacts-content .footer-item {
+.landing-footer .footer-item {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     font-size: 0.95em;
     max-width: 100%;
     min-width: 0;
     line-height: 1.4;
 }
 
-.landing-contacts-content .footer-icon {
-    font-size: 1.1em;
+.landing-footer .footer-icon {
+    color: #8b9199;
     flex-shrink: 0;
     line-height: 1;
     display: inline-flex;
     align-items: center;
+    filter: grayscale(1);
+    opacity: 0.8;
 }
 
-.landing-contacts-content .footer-text {
-    color: var(--fidas-dark);
-    font-weight: 500;
+.landing-footer .footer-text {
+    color: #8b9199;
+    font-weight: 400;
     word-break: break-word;
     overflow-wrap: anywhere;
     min-width: 0;
+}
+
+.luogo-box,
+.medico-box {
+    margin-top: 20px;
+    padding: 18px;
+    background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+    border: 1px solid rgba(0,61,122,0.1);
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
+    text-align: center;
 }
 
 #app.landing.privacy-text {
@@ -362,7 +447,7 @@ body {
 /* Stile base per la pagina, ciò che sta dentro */
 .container {
     max-width: 1200px;
-    width: 100%;
+    width: 80%;
     margin: 30px auto;
     padding: 35px; 
     background: var(--fidas-container); /* Sfondo bianco  --fidas-white */
@@ -426,20 +511,9 @@ h5, h6, p {
 /* --- A. Vista LANDING --- */
 #app.landing .main-title {
     color: #000000;
-    font-weight: 700;
+    font-weight: 600;
     margin-bottom: 40px;
 }
-
-
-.version-badge {
-
-    font-size: 0.4em;
-    font-weight: 700;
-    margin-left: 6px;
-    color: var(--fidas-gray);
-    
-}
-
 
 #app.landing .privacy-text {
     text-align: left;
@@ -871,6 +945,7 @@ tr:nth-child(odd) {
     font-weight: bold !important;
     font-size: 1.1em !important;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+
 }
 /* 1. Contenitore principale flessibile */
 .idonei-columns {
@@ -894,14 +969,14 @@ tr:nth-child(odd) {
 
 /* 3. Intestazione: altezza fissa sincronizzata */
 .idonei-table th {
-    height: 48px !important;
+    height: 45px !important;
     box-sizing: border-box;
     vertical-align: middle;
 }
 
 /* 4. Celle del corpo: altezza fissa sincronizzata */
 .idonei-table td {
-    height: 44px !important;
+    height: 45px !important;
     box-sizing: border-box;
     vertical-align: middle;
 }
@@ -909,7 +984,7 @@ tr:nth-child(odd) {
 /* 5. Colonna MATRICOLA */
 .idonei-table th:first-child,
 .idonei-table td:first-child {
-    width: 180px !important; /* Mantenuto il tuo valore a 180px */
+    width: 150px !important; /* Mantenuto il tuo valore a 180px */
     text-align: center;
 }
 
@@ -1266,25 +1341,33 @@ select.slot-select option:disabled {
         padding: 9px 15px; /* Proportionally reduced */
     }
     
-    /* Box contatti su mobile: colonna singola */
-    .landing-contacts-card {
-        padding: 20px;
-        margin: 25px auto;
-        width: calc(100% - 0px);
+    /* Brand in landing su mobile */
+    #app.landing .app-brand-logo {
+        height: 46px;
+    }
+    #app.landing .app-brand-wordmark {
+        font-size: 1.9rem;
     }
 
-    .landing-contacts-content {
+    /* Footer contatti su mobile: colonna singola, centrata */
+    .landing-footer {
+        margin-top: 30px;
+        padding: 12px 8px 0;
+    }
+
+    .landing-footer .landing-contacts-content {
         flex-direction: column;
-        gap: 14px;
-        align-items: flex-start;
+        gap: 8px;
+        align-items: center;
         width: 100%;
     }
 
-    .landing-contacts-content .footer-item {
+    .landing-footer .footer-item {
         width: 100%;
+        justify-content: center;
     }
 
-    .landing-contacts-content .footer-text {
+    .landing-footer .footer-text {
         font-size: 0.9em;
     }
     
@@ -1302,3 +1385,277 @@ select.slot-select option:disabled {
         gap: 6px !important;
     }
 }
+/* ================================================= */
+/* AGGIUNTE PrenotaQui: login singolo + pagina Home  */
+/* (sostituisce il blocco aggiunto in precedenza)    */
+/* ================================================= */
+.login-single { max-width: 400px; margin: 0 auto; }
+
+.privacy-link-row { text-align: center; font-size: 0.9em; color: #6B7280; margin-top: 15px; }
+.privacy-link-row a { color: var(--fidas-blue); font-weight: 600; }
+
+#app.home .main-title { margin-bottom: 20px; }
+.home-section-title { text-align: center; color: var(--fidas-blue); margin: 30px 0 15px; }
+
+/* Look uniforme dei box della Home: stesso bordo, raggio, ombra, larghezza piena */
+.date-box, .link-box, .luogo-box, .medico-box {
+    background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+    border: 1px solid rgba(0,61,122,0.1);
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
+}
+
+/* Date: 2 box per riga, piu' alti */
+.dates-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.date-box {
+    min-height: 120px;
+    padding: 20px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 1.15em;
+    color: var(--fidas-black);
+}
+.date-icon { font-size: 1.8em; }
+
+.luogo-box, .medico-box { margin-top: 20px; padding: 28px; text-align: center;font-size: 1.3em; }
+
+/* Box News / Sospensioni / Extra */
+.links-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+.link-box { padding: 20px; display: flex; flex-direction: column; text-align: center; }
+.link-box h3 { margin-top: 0; color: var(--fidas-black); }
+.link-box p { text-align: center; flex-grow: 1; color: #6B7280; font-size: 0.95em; }
+.link-box a.btn-forward {
+    align-self: center;
+    text-decoration: none;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: var(--shadow-md);
+}
+
+/* Pulsanti Avanti / Esci in Home: stesso stile nav.top-nav delle altre pagine */
+.home-actions { margin-top: 35px; margin-bottom: 0; }
+/* button.exit ha margin-bottom 100px: in Home lo azzero, altrimenti il footer resta troppo lontano */
+.home-actions button.exit { margin-bottom: 5px; }
+
+@media screen and (max-width: 700px) {
+    .date-box { min-height: 100px; padding: 16px 8px; font-size: 1em; }
+    .link-box { padding: 16px; }
+}
+/* ===== HOME ===== */
+.home-light { max-width: 900px; margin: 0 auto; }
+.home-light .main-title { margin-bottom: 30px; }
+
+.home-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.home-card {
+    border: 1px solid #dfe3e8;
+    border-radius: 14px;
+    padding: 22px 20px;
+    background: var(--fidas-light-white);
+    text-align: center;
+}
+.home-card h2 { font-size: 1.3em; margin: 0 0 8px; color: var(--fidas-black); }
+.home-card p { text-align: center; color: #181818; line-height: 1.5; white-space: pre-line; }
+.home-light .sec-sub { color:#6B7280; font-size: 0.95em; }
+.home-light .sec-empty { color: #aaa; font-style: italic; }
+
+/* date a riquadri: la prima è "Prossima data" (l'admin toglie quelle passate) */
+.date-chips { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 22px 0 14px; }
+.date-chips li {
+    position: relative;
+    padding: 12px 8px;
+    background: var(--fidas-white);
+    border: 1px solid #dfdada;
+    border-radius: 10px;
+    font-weight: 600;
+    color: var(--fidas-black);
+}
+.date-chips li.past { color: #555; background: transparent; border-style: dashed; font-weight: 500; }
+.date-chips li.next { border: 2px solid var(--fidas-red); }
+.date-chips li.next::before {
+    content: 'Prossima data';
+    position: absolute; top: -9px; left: 50%; transform: translateX(-50%);
+    padding: 0 6px;
+    background: var(--fidas-light-white);
+    color: var(--fidas-red);
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.home-card .where a { color: var(--fidas-blue); font-weight: 600; text-decoration: none; }
+.home-card .where a:hover { text-decoration: underline; }
+
+/* righe a tutta larghezza */
+.home-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px 24px; flex-wrap: wrap;
+    margin-top: 24px; padding: 24px 4px 0;
+    border-top: 1px solid #e3e6ea;
+}
+.home-row h2 { font-size: 1.3em; text-align: left; margin: 0; color: var(--fidas-black); }
+.home-row .sec-sub { text-align: left; margin: 4px 0 0; }
+
+.link-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.link-row a, .home-row .mail {
+    padding: 10px 18px;
+    border: 2px solid var(--fidas-blue);
+    border-radius: 999px;
+    color: var(--fidas-blue);
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: var(--transition);
+}
+.link-row a:hover, .home-row .mail:hover { background: var(--fidas-blue); color: var(--fidas-white); }
+
+@media screen and (max-width: 700px) {
+    .home-cards { grid-template-columns: 1fr; }
+    .home-row { flex-direction: column; align-items: flex-start; }
+}
+
+/* ===== PULSANTI: gerarchia su tutte le pagine ===== */
+/* Avanti: principale */
+.btn-forward { font-size: 1.05em !important; padding: 14px 34px !important; box-shadow: var(--shadow-md) !important; }
+/* Pulsanti secondari: Indietro / Esci / Area Riservata, stessa forma e altezza */
+.btn-back,
+button.exit,
+.btn-admin {
+    box-sizing: border-box;
+    min-height: 44px;
+    padding: 0 20px !important;
+    margin: 5px !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95em !important;
+    font-weight: 600 !important;
+    line-height: 1;
+    white-space: nowrap;
+    background: transparent !important;
+    border: 2px solid currentColor !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    text-decoration: none;
+}
+
+.btn-back          { color: var(--fidas-blue) !important; }
+button.exit        { color: var(--fidas-red) !important; }
+.btn-admin         { color: #6f5fb0 !important; }
+
+.btn-back:hover    { background: rgba(0,61,122,0.08) !important; }
+button.exit:hover  { background: rgba(200,16,46,0.08) !important; }
+.btn-admin:hover   { background: rgba(111,95,176,0.1) !important; }
+
+.btn-back:hover,
+button.exit:hover,
+.btn-admin:hover {
+    box-shadow: none !important;
+    transform: none !important;
+}
+.home-card p.plasma-text { text-align: justify; hyphens: auto; }
+.mail-wrap { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; }
+.mail-addr { font-weight: 600; color: var(--fidas-black); overflow-wrap: anywhere; user-select: all; }
+/* ================================================= */
+/* LISTA IDONEI: righe compatte e sincronizzate      */
+/* ================================================= */
+:root { --idonei-row-h: 32px; }   /* cambia qui l'altezza delle righe */
+
+.idonei-table th,
+.idonei-table td {
+    height: var(--idonei-row-h) !important;
+    padding: 0 10px !important;
+    line-height: 1.2;
+    font-size: 0.95em;
+    vertical-align: middle;
+}
+.idonei-table th { height: 38px !important; font-size: 0.9em; }
+.idonei-table tbody tr:hover { transform: none; }
+
+/* riga dell'utente evidenziato: stessa altezza delle altre (niente bordo spesso, font uguale) */
+.idonei-columns .bookings-table tbody tr.highlight-user { border: 0 !important; }
+.idonei-columns .bookings-table tbody tr.highlight-user td {
+    font-size: 0.95em !important;
+    box-shadow: inset 0 2px 0 #d9534f, inset 0 -2px 0 #d9534f;
+}
+
+/* ================================================= */
+/* TUTTI I PULSANTI A PILLOLA (come News / Sospensioni) */
+/* ================================================= */
+button,
+.btn-forward, .btn-back, .btn-admin, .btn-refresh,
+button.exit, .register-btn, .landing-login-btn,
+.modal-btn-ok, .modal-btn-cancel {
+    border-radius: 999px !important;
+}
+
+/* ================================================= */
+/* HOME: più spazio                                  */
+/* ================================================= */
+#app.home .home-light .main-title { margin-bottom: 50px;  }  /* titolo -> card 50px */
+.home-cards { gap: 28px; }                                  /* spazio tra card sangue / plasma 28 */
+.home-card { padding: 28px 24px; }                         /* card sangue / plasma 28px e 24px */
+.date-chips { gap: 20px; margin: 36px 0 28px; }
+.home-row { margin-top: 54px; padding-top: 46px; }          /* tra una voce e l'altra 44px e 36px*/
+.home-actions { margin-top: 50px; }                         /* prima di Avanti / Esci */
+/* ===== HOME: titolo e sfondo card ===== */
+:root { --home-card-bg: #eef5fc; }          /* azzurrino leggero, cambia qui */
+
+.home-light h1.home-title { margin: 0 0 100px !important; }  /* titolo -> spazio sotto 50px */
+
+.home-card {
+    background: var(--home-card-bg);
+    border-color: #d3e3f4;
+}
+.date-chips li.next::before { background: var(--home-card-bg); }
+
+/* ===== LISTA IDONEI: riga personale in box azzurrino + pulsanti + tendina ===== */
+.idonei-mine { margin: 0px 0 50px; }
+.idonei-mine-line {
+    text-align: left;
+    font-size: 1.15em;
+    color: var(--fidas-black);
+    background: var(--home-card-bg, #eef5fc);   /* stesso azzurrino delle card della Home */
+    border: 1px solid #d3e3f4;
+    border-radius: 14px;
+    padding: 28px 30px;
+    margin: 05px;
+}
+.idonei-mine-line .nome-cap { text-transform: capitalize; }
+.idonei-mine-no { color: #6B7280; font-style: italic; }
+
+.idonei-nav { margin: 24px 0 10px; }
+
+details.idonei-details { margin-top: 10px; }
+details.idonei-details > summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    margin: 0 auto;
+    padding: 8px 20px;
+    background: transparent;
+    border: 1px solid #cfd6dd;
+    border-radius: 999px;
+    color: var(--fidas-blue);
+    font-size: 0.95em;
+    font-weight: 500;
+    user-select: none;
+}
+details.idonei-details > summary::-webkit-details-marker { display: none; }
+details.idonei-details > summary::marker { content: ''; }
+details.idonei-details > summary:hover { background: rgba(0,61,122,0.06); }
+details.idonei-details > summary::before { content: '▼'; margin-right: 8px; font-size: 0.8em; }
+details.idonei-details[open] > summary::before { content: '▲'; }
+details.idonei-details[open] > summary { margin-bottom: 14px; }
+details.idonei-details .when-open { display: none; }
+details.idonei-details[open] .when-open { display: inline; }
+details.idonei-details[open] .when-closed { display: none; }

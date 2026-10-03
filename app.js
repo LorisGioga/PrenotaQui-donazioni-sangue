@@ -4,11 +4,11 @@
 // 1. Importazioni Firebase e Vue.js
 // ===================================================================
 //
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js';
-import { getDatabase, ref, push, onValue, set, get, child, remove, update } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
+import { getDatabase, ref, push, onValue, set, get, child, remove, update } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js';
 
-const { createApp, reactive, ref: vueRef } = Vue;
+const { createApp, reactive, ref: vueRef, computed } = Vue;
 //=====================================================================
 // 2. Configurazione Firebase: Fidas San Giusto Can 2
 //=====================================================================
@@ -70,6 +70,42 @@ createApp({
     });
     const donationDates = reactive(['', '', '', '', '', '', '', '']);
     const medicoEmail = vueRef('medico@fidas-sangiusto.it');
+    const donationPlace = vueRef('');
+
+    // Date donazioni: riconosce "17 Gennaio 2026" (anche con "Sabato" davanti, mese abbreviato
+    // oppure solo "Gennaio 2027" senza giorno: in quel caso vale fino a fine mese)
+    const mesiIt = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+    function parseDataIt(testo) {
+      const m = String(testo).toLowerCase().match(/(?:(\d{1,2})\s+)?([a-zà]{3,})\.?\s+(\d{4})/);
+      if (!m) return null;
+      const mese = mesiIt.findIndex(x => x.startsWith(m[2]));
+      if (mese < 0) return null;
+      const anno = Number(m[3]);
+      // senza giorno: vale fino a fine mese
+      return m[1]
+        ? new Date(anno, mese, Number(m[1]), 23, 59)
+        : new Date(anno, mese + 1, 0, 23, 59);
+    }
+    // Elenco date per la Home: passate (grigie) e prima data futura ("Prossima data")
+    const donationDatesInfo = computed(() => {
+      const ora = new Date();
+      let trovata = false;
+      return donationDates.slice(0, 4)
+        .filter(d => d && d.trim() !== '')
+        .map(d => {
+          const data = parseDataIt(d);
+          const passata = data ? data < ora : false;
+          const prossima = !passata && !trovata;
+          if (prossima) trovata = true;
+          return { testo: d, passata, prossima };
+        });
+    });
+    
+    // Riga dell'utente loggato nella lista idonei (null se non presente)
+    const mioIdoneo = computed(() => {
+      if (!user.matricola) return null;
+      return idoneiList.find(p => String(p.matricola) === String(user.matricola)) || null;
+    });
     
     // Footer contacts
     const footerContacts = reactive({
@@ -79,10 +115,21 @@ createApp({
       address: '',
       website: ''
     });
+
+    // Privacy in overlay (testo mostrato in un pulsante/modale invece che inline)
+    const showPrivacy = vueRef(false);
+
+    // Pulsanti di collegamento in home: News, Sospensioni, e un terzo generico
+    const quickLinks = reactive({
+      news: { url: '', desc: '' },
+      sospensioni: { url: '', desc: '' },
+      extra: { url: '', desc: '', label: '' }
+    });
     
     const texts = reactive({ 
       landing:'Se sei un nuovo donatore o non fai parte di questo gruppo, contatta il N. 333.78.36.256 o uno del Direttivo, ci penseremo noi ad inserirti nella lista.', 
-      pageSelect:"Si prega di avere con sé la carta d' IDENTITA' ed il tesserino FIDAS" 
+      pageSelect:"Si prega di avere con sé la carta d' IDENTITA' ed il tesserino FIDAS",
+      privacy: "Ai sensi del Regolamento (UE) 2016/679 (GDPR), informiamo che i dati personali inseriti nel presente modulo di prenotazione sono trattati esclusivamente per finalità organizzative legate alla donazione di sangue. Il trattamento è svolto da persone autorizzate dal Presidente del Gruppo FIDAS San Giusto, Titolare del trattamento, nell'ambito delle attività associative e in conformità all'informativa sottoscritta dal donatore al momento dell'iscrizione alla FIDAS. I dati raccolti non saranno utilizzati per altri scopi e non saranno comunicati a soggetti terzi, salvo obblighi di legge. Il trattamento avviene nel rispetto delle misure di sicurezza previste dalla normativa vigente. Per ulteriori informazioni sul trattamento dei dati, è possibile consultare l'Informativa Privacy FIDAS disponibile presso la sede o richiederne copia al momento della donazione."
     });
     
     const fileInput = vueRef(null);
@@ -245,8 +292,18 @@ createApp({
       if (snap.val()) medicoEmail.value = snap.val();
     });
     
+    onValue(ref(db, 'donationPlace'), snap => { donationPlace.value = snap.val() || ''; });
+
     onValue(ref(db, 'footerContacts'), snap => {
       if (snap.val()) Object.assign(footerContacts, snap.val());
+    });
+
+    // Pulsanti News / Sospensioni / Extra in home
+    onValue(ref(db, 'quickLinks'), snap => {
+      const data = snap.val() || {};
+      quickLinks.news = data.news || { url: '', desc: '' };
+      quickLinks.sospensioni = data.sospensioni || { url: '', desc: '' };
+      quickLinks.extra = data.extra || { url: '', desc: '', label: '' };
     });
 
     const remaining = slot => seatsPerSlot.value - (bookingsBySlot[slot.id]?.length || 0);
@@ -301,7 +358,7 @@ createApp({
         isRegistering.value = false;
         
         await showAlert('Registrazione effettuata con successo! Ora puoi procedere.');
-        view.value = 'idoneiPage';
+        view.value = 'home';
         
       } catch (error) {
         isRegistering.value = false;
@@ -339,7 +396,7 @@ createApp({
         if (snap.exists()) {
           Object.assign(user, snap.val());
           await showAlert('Accesso effettuato con successo!');
-          view.value = 'idoneiPage';
+          view.value = 'home';
         } else {
           console.warn("Utente autenticato (Auth) ma dati profilo mancanti nel DB:", cred.user.uid);
           await showAlert('Accesso effettuato, ma dati profilo non trovati nel database. Contatta l\'amministrazione.');
@@ -649,12 +706,31 @@ createApp({
       }
     }
     
+    async function updateDonationPlace() {
+      try {
+        await set(ref(db, 'donationPlace'), donationPlace.value);
+      } catch (e) {
+        console.error("Errore updateDonationPlace:", e);
+        await showAlert('Errore durante l\'aggiornamento del luogo donazioni');
+      }
+    }
+
     async function updateFooterContact(field) {
       try {
         await set(ref(db, 'footerContacts'), footerContacts);
       } catch (e) {
         console.error("Errore updateFooterContact:", e);
         await showAlert('Errore durante l\'aggiornamento contatti footer');
+      }
+    }
+
+    // Aggiorna uno dei 3 pulsanti di collegamento (news / sospensioni / extra)
+    async function updateQuickLink(key) {
+      try {
+        await set(ref(db, `quickLinks/${key}`), quickLinks[key]);
+      } catch (e) {
+        console.error("Errore updateQuickLink:", e);
+        await showAlert('Errore durante l\'aggiornamento del pulsante di collegamento');
       }
     }
     
@@ -864,13 +940,14 @@ createApp({
     return { 
       view, user, booking, slots, bookingsBySlot, seatsPerSlot, pageNames, texts, blocks, isAdmin, adminPass, newPageName,
       idoneiList, idoneiTitle, fileInputIdonei, isRegistering,
-      landingLinks, donationDates, medicoEmail, footerContacts,
+      landingLinks, donationDates, donationDatesInfo, mioIdoneo, medicoEmail, donationPlace, footerContacts,
+      showPrivacy, quickLinks, updateQuickLink,
       remaining, mask, register, login, resetPassword, logout, enterPage, loadBookings, confirmBook, adminLogin, exitAdmin, 
       updatePageName, updateText, updateBlock, updateAdminPass, updateSeatsPerSlot, removeBooking, resetAll, exportExcel, 
       importExcel, handleFileUpload, focusNext, fileInput, 
       addPage, removePage,
       importExcelIdonei, handleFileUploadIdonei, updateIdoneiTitle, resetIdoneiList, forceReloadIdonei,
-      updateLandingLink, updateDonationDate, updateMedicoEmail, updateFooterContact,
+      updateLandingLink, updateDonationDate, updateMedicoEmail, updateDonationPlace, updateFooterContact,
       modal, modalConfirm, modalCancel
     };
   }
