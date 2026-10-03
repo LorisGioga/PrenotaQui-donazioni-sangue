@@ -59,12 +59,12 @@
         <div v-else-if="view==='home'">
 
             <div class="home-light">
-                <h1 class="main-title home-title">Le nostre Donazioni</h1>
+                <h1 class="main-title home-title">Calendario Donazioni</h1>
 
                 <div class="home-cards">
                     <section class="home-card">
-                        <h2>🩸 Donazione di sangue </h2>
-                        <p class="sec-sub">Le giornate di donazione del Gruppo FIDAS di San Giusto Canavese</p>
+                        <h2>🩸 Prelievo di sangue </h2>
+                        <p class="sec-sub">Le date della donazione</p>
 
                         <ul class="date-chips" v-if="donationDatesInfo.length">
                             <li v-for="(d, i) in donationDatesInfo" :key="i" :class="{ next: d.prossima, past: d.passata }">{{ d.testo }}</li>
@@ -78,7 +78,7 @@
                     </section>
 
                     <section class="home-card">
-                        <h2>💧 Donazione di plasma</h2>
+                        <h2>💧 Prelievo di plasma</h2>
                         <p>&nbsp;&nbsp;&nbsp;</p>
                         <p class="plasma-text">{{ texts.plasma || 'Per la donazione di plasma ci appoggiamo alla sede FIDAS di Rivarolo Canavese. Periodicamente organizziamo trasferte di gruppo per raggiungere insieme la sede.' }}</p>
                     </section>
