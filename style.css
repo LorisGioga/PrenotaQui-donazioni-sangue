@@ -1659,3 +1659,96 @@ details.idonei-details[open] > summary { margin-bottom: 14px; }
 details.idonei-details .when-open { display: none; }
 details.idonei-details[open] .when-open { display: inline; }
 details.idonei-details[open] .when-closed { display: none; }
+/* ================================================= */
+/* TELEFONO: tutto più piccolo (schermi fino a 600px) */
+/* ================================================= */
+@media screen and (max-width: 600px) {
+
+    html, body { font-size: 14px; }
+
+    /* contenitore: usa quasi tutta la larghezza */
+    .container { width: 96%; padding: 16px 12px; margin: 10px auto; border-radius: 12px; }
+
+    /* intestazione */
+    .global-header { padding: 8px 12px; }
+    .header-logo { height: 30px; margin-right: 10px; }
+    .header-text { font-size: 0.85em; }
+
+    /* titolo PrenotaQui */
+    #app.landing .app-brand { gap: 6px; margin-bottom: 10px; }
+    #app.landing .app-brand-logo { height: 34px; margin-right: -12px; }
+    #app.landing .app-brand-wordmark { font-size: 1.7rem; }
+    #app.landing .app-brand-version { font-size: 0.65rem; padding: 2px 6px; }
+    #app.landing p[style*="font-size:1.8em"] {
+        font-size: 1.15em !important;
+        margin: 30px 0 !important;
+    }
+
+    /* titoli */
+    h1 { font-size: 1.5em; margin-bottom: 22px; }
+    h2 { font-size: 1.2em; }
+    h3 { font-size: 1.1em; margin-top: 18px; }
+    .session-title, .idonei-title { font-size: 1.15em; }
+
+    /* campi di testo: 16px per evitare lo zoom automatico dell'iPhone */
+    input[type="text"], input[type="email"], input[type="password"], input[type="number"], select {
+        padding: 10px 12px; font-size: 16px; margin: 6px 0;
+    }
+    .landing-input { padding: 10px 12px !important; font-size: 16px !important; margin: 6px 0 !important; }
+    textarea.text-input { font-size: 16px; }
+
+    /* login */
+    .login-box { padding: 18px 14px; margin: 14px auto; }
+    .landing-login-btn { padding: 12px; font-size: 1.05em; margin: 14px 0; }
+    .register-btn { padding: 11px !important; }
+    .register-prompt { margin-top: 20px; padding-top: 16px; }
+
+    /* pulsanti */
+    button { padding: 9px 16px; font-size: 0.9em; margin: 3px; }
+    .btn-forward { padding: 10px 22px !important; font-size: 0.95em !important; }
+    .btn-back, button.exit, .btn-admin {
+        min-height: 34px; padding: 0 14px !important; font-size: 0.85em !important; margin: 3px !important;
+    }
+    nav.top-nav button { padding: 9px 16px; font-size: 0.85em !important; }
+    .booking-section button:not(.admin-exit) { padding: 12px 24px; font-size: 1em; }
+
+    /* home */
+    .home-light h1.home-title { margin: 0 0 26px !important; }
+    .home-cards { gap: 14px; }
+    .home-card { padding: 18px 14px; }
+    .home-card h2 { font-size: 1.1em; }
+    .date-chips { gap: 10px; margin: 20px 0 12px; }
+    .date-chips li { padding: 9px 6px; font-size: 0.95em; }
+    .home-row { margin-top: 26px; padding-top: 22px; gap: 12px; }
+    .home-row h2 { font-size: 1.1em; }
+    .link-row a, .home-row .mail { padding: 8px 14px; font-size: 0.9em; }
+    .home-actions { margin-top: 28px; }
+
+    /* lista idonei */
+    :root { --idonei-row-h: 28px; }
+    .idonei-mine { margin: 18px 0 8px; }
+    .idonei-mine-line { font-size: 1em; padding: 12px; }
+    .idonei-table th:first-child, .idonei-table td:first-child { width: 90px !important; }
+    .idonei-table td { font-size: 0.9em; }
+    .idonei-columns { gap: 24px; }
+
+    /* tabella prenotazioni */
+    th, td { padding: 8px 6px; }
+    th { font-size: 0.85em; padding: 10px 6px; }
+    .table-scroll table.prenotazioni-table { min-width: 380px !important; }
+    .table-scroll table.prenotazioni-table th:nth-child(1),
+    .table-scroll table.prenotazioni-table td:nth-child(1) { width: 84px !important; }
+    .table-scroll table.prenotazioni-table th:nth-child(2),
+    .table-scroll table.prenotazioni-table td:nth-child(2) { width: 30px !important; }
+    .table-scroll table.prenotazioni-table th:nth-child(3),
+    .table-scroll table.prenotazioni-table td:nth-child(3) { width: 120px !important; }
+    .table-scroll table.prenotazioni-table th:nth-child(4),
+    .table-scroll table.prenotazioni-table td:nth-child(4) { width: 110px !important; }
+    .seats-badge { font-size: 0.72em; padding: 4px 8px; }
+
+    /* finestre di dialogo */
+    .modal-overlay { padding-top: 40px; }
+    .modal-box { width: 94%; padding: 20px 16px; }
+    .modal-title { font-size: 1.2em; margin-bottom: 12px; }
+    .modal-message { font-size: 1em; margin-bottom: 18px; }
+}
