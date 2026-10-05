@@ -180,12 +180,12 @@
             <h2 class="main-title idonei-title">
             <span class="session-label">Data della Donazione:</span> {{ idoneiTitle }}
             </h2>
-            <p>&nbsp;&nbsp;&nbsp;</p>          
-            <p style="margin: 100px 0px  0px  30px ; font-size:1em; color:#6B7280; text-align:left;">
-            La tua presenza in lista:
+                      
+            <p style="margin: 50px 0px  0px  20px ; font-size:1em; color:#6B7280; text-align:left;">
+            La tua presenza nella lista:
             </p>  
                 <p v-if="idoneiList.length === 0" style="color:#6B7280; font-style:italic; text-align:center; margin:30px 0;">
-                Nessuna lista disponibile al momento.
+                Nessuna lista disponibile al momento. Prova con «Aggiorna Lista» qui sotto.
                 </p>
                
             <div v-else class="idonei-mine">
@@ -197,22 +197,9 @@
                     La tua matricola non risulta nell'elenco. Se pensi sia un errore, contatta il Gruppo.
                 </p>
                 
-            </div>
-            
-
-            <p>&nbsp;&nbsp;&nbsp;</p>
-            <button @click="forceReloadIdonei()" class="btn-refresh">🔄 Aggiorna Lista</button>
-            
-            
-
-             <p style="margin-top:50px; font-size:1em; color:#6B7280; text-align:left;">
-                ℹ️ La lista viene caricata automaticamente.
-                Se non la visualizzi subito, clicca su "🔄 Aggiorna lista" per ricaricarla.
-            </p>     
-             <p style="margin-top:30px; margin-bottom:50px; font-size:1em; color:#6B7280; text-align:left;">
-             ℹ️ Elenco basato sui dati ufficiali del sistema Pangea ADSP, aggiornato periodicamente dal Gruppo.
-            </p>  
-
+            </div>         
+                                
+           
             <!-- Pulsanti di navigazione: tra la tua riga e l'elenco -->
             <nav class="top-nav idonei-nav">
                 <div></div>
@@ -223,6 +210,16 @@
                     <button class="exit" @click="logout()">Esci</button>
                 </div>
             </nav>
+            <p style="margin-top:30px; margin-bottom:10px; font-size:1em; color:#6B7280; text-align:left;">
+             ℹ️ Elenco basato sui dati ufficiali del sistema Pangea ADSP, aggiornato periodicamente dal Gruppo.
+            </p> 
+             <p style="margin-top:20px; margin-bottom:30px; font-size:1em; color:#6B7280; text-align:left;">
+                ℹ️ La lista viene caricata automaticamente.
+                Se non la visualizzi subito, clicca su "🔄 Aggiorna lista" per ricaricarla.
+            </p>    
+            
+            <button @click="forceReloadIdonei()" class="btn-refresh">🔄 Aggiorna Lista</button>
+            <p>&nbsp;&nbsp;&nbsp;</p>
 
             <!-- Elenco completo a tendina -->
             <details v-if="idoneiList.length > 0" class="idonei-details">

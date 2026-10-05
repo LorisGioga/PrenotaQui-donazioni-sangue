@@ -12,6 +12,7 @@
     --fidas-light-gray: #e8e8e8;
     --fidas-dark: #212529;
     --fidas-white: #ffffff;
+    --fidas-aggiorna: #4ba7d4;      /* nuovo */
     --fidas-black: #000000;          /* nuovo */
     --fidas-light-white: #f8f9fa;    /* nuovo */
     --fidas-container: #ffffff;
@@ -706,14 +707,15 @@ button:active {
 }
 
 
-/* Pulsante Aggiorna Lista - Verde */
+/* Pulsante Aggiorna Lista - aggiorna #26739A */
 .btn-refresh {
-    background: linear-gradient(135deg, var(--fidas-green) 0%, #218838 100%) !important;
-    color: var(--fidas-white) !important;
+    background: linear-gradient(135deg, #DCEFF8 0%, var(--fidas-aggiorna) 100%) !important;
+    color: #ffffff !important;
 }
 
 .btn-refresh:hover {
-    background: linear-gradient(135deg, #218838 0%, var(--fidas-green) 100%) !important;
+    background: linear-gradient(135deg, #C6E4F1 0%, #4b88a6 100%) !important;
+    color: var(--fidas-white) !important;
 }
 
 button.reset { 
@@ -1620,7 +1622,7 @@ button.exit, .register-btn, .landing-login-btn,
 .idonei-mine-line {
     text-align: left;
     font-size: 1.15em;
-    color: var(--fidas-black);
+    color: var(--fidas-red);
     background: var(--home-card-bg, #eef5fc);   /* stesso azzurrino delle card della Home */
     border: 1px solid #d3e3f4;
     border-radius: 14px;

@@ -8,7 +8,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/fireba
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
 import { getDatabase, ref, push, onValue, set, get, child, remove, update } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js';
 
-const { createApp, reactive, ref: vueRef, computed } = Vue;
+const { createApp, reactive, ref: vueRef, computed, watch } = Vue;
 //=====================================================================
 // 2. Configurazione Firebase: Fidas San Giusto Can 2
 //=====================================================================
@@ -42,6 +42,10 @@ createApp({
     // 
     
     const view = vueRef('landing');
+    // Ad ogni cambio pagina, torna in cima (utile da telefono)
+    watch(view, () => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }, { flush: 'post' });
     const seatsPerSlot = vueRef(6);
     const user = reactive({ lastName:'', firstName:'', matricola:'', email:'', password:'', pageChoice:'page1' });
     const booking = reactive({ matricola:'', name:'', slot: null });
