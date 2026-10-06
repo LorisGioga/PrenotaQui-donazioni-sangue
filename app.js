@@ -333,7 +333,7 @@ createApp({
     }
 
     async function register() {
-      if (!validateAuthFields()) return;
+      if (!(await validateAuthFields())) return;
 
       try {
         isRegistering.value = true;
@@ -475,8 +475,10 @@ createApp({
       loadBookings();
     }
 
-    function loadBookings() { 
-      onValue(ref(db, `${user.pageChoice}/prenotazioni`), snap => { 
+    let unsubBookings = null;
+    function loadBookings() {
+      if (unsubBookings) unsubBookings();
+      unsubBookings = onValue(ref(db, `${user.pageChoice}/prenotazioni`), snap => { 
         const data=snap.val()||{}; 
         slots.forEach(s=>bookingsBySlot[s.id]=[]); 
         Object.entries(data).forEach(([key,b])=>bookingsBySlot[b.slot].push({...b,key})); 
@@ -513,7 +515,7 @@ createApp({
         for (let p of pageKeys) {
           const snap = await get(ref(db, `${p}/prenotazioni`));
           const list = snap.val() ? Object.values(snap.val()) : [];
-          if (list.find(b => b.matricola === matricolaToCheck)) {
+          if (list.find(b => String(b.matricola) === String(matricolaToCheck))) {
             booking.name = '';
             booking.matricola = '';
             booking.slot = null;
