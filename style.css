@@ -5,7 +5,9 @@
     --fidas-red: #c8102e;
     --fidas-blue: #003d7a;
     --fidas-light-blue: #4a90e2;
-    --fidas-green: #28a745;
+    --fidas-green: #28a745;          /* verde brillante: pallini, bordi */
+    --fidas-green-strong: #1e7e34;   /* verde pieno: sfondo riga evidenziata con testo bianco */
+    --fidas-green-border: #14532d;   /* contorno scuro del verde */
     --fidas-orange: #ff9800;
     --fidas-viola: #9d92ca;
     --fidas-gray: #6c757d;
@@ -877,14 +879,27 @@ tr:nth-child(odd) {
     font-size: 0.6em; 
 }
 
-/* Evidenziazione prenotazione utente loggato - Solo testo rosso */
+/* Evidenziazione prenotazione utente loggato: pallino verde + nome intero in nero grassetto, allineato a sinistra
+   (nessun padding verticale: l'altezza resta uguale alle altre righe e ai numeri dei posti) */
 .prenotazione-nome.user-booking {
-    color: var(--fidas-red);
+    color: var(--fidas-black);
     font-weight: 700;
+    justify-content: flex-start;
 }
 
 .prenotazione-nome.user-booking span {
-    color: var(--fidas-red);
+    color: var(--fidas-black);
+}
+
+.prenotazione-nome.user-booking::before {
+    content: '';
+    flex: 0 0 14px;
+    width: 14px; height: 14px;
+    margin-right: 8px;
+    border-radius: 50%;
+    background: var(--fidas-green);
+    border: 2px solid var(--fidas-green-border);
+    box-sizing: border-box;
 }
 
 .page-name-input, 
@@ -938,15 +953,14 @@ tr:nth-child(odd) {
 /* EVIDENZIAZIONE UTENTE NELLA LISTA IDONEI */
 /* ================================================= */
 .bookings-table tbody tr.highlight-user {
-    background: #ff6b35 !important;
-    border: 3px solid #d9534f !important;
+    background: var(--fidas-green-strong) !important;
+    border: 3px solid var(--fidas-green-border) !important;
 }
 
 .bookings-table tbody tr.highlight-user td {
     color: #ffffff !important;
     font-weight: bold !important;
     font-size: 1.1em !important;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 
 }
 /* 1. Contenitore principale flessibile */
@@ -1584,7 +1598,7 @@ button.exit:hover,
 .idonei-columns .bookings-table tbody tr.highlight-user { border: 0 !important; }
 .idonei-columns .bookings-table tbody tr.highlight-user td {
     font-size: 0.95em !important;
-    box-shadow: inset 0 2px 0 #d9534f, inset 0 -2px 0 #d9534f;
+    box-shadow: inset 0 2px 0 var(--fidas-green-border), inset 0 -2px 0 var(--fidas-green-border);
 }
 
 /* ================================================= */
@@ -1622,7 +1636,9 @@ button.exit, .register-btn, .landing-login-btn,
 .idonei-mine-line {
     text-align: left;
     font-size: 1.15em;
-    color: var(--fidas-red);
+    font-weight: 700;
+    color: var(--fidas-black);
+    border-left: 6px solid var(--fidas-green);
     background: var(--home-card-bg, #eef5fc);   /* stesso azzurrino delle card della Home */
     border: 1px solid #d3e3f4;
     border-radius: 14px;
@@ -1630,7 +1646,27 @@ button.exit, .register-btn, .landing-login-btn,
     margin: 05px;
 }
 .idonei-mine-line .nome-cap { text-transform: capitalize; }
-.idonei-mine-no { color: #6B7280; font-style: italic; }
+/* pallino pieno davanti all'esito: verde = presente, rosso = non presente */
+.idonei-mine-line::before {
+    content: '';
+    display: inline-block;
+    width: 18px; height: 18px;
+    margin-right: 12px;
+    vertical-align: -2px;
+    border-radius: 50%;
+    background: var(--fidas-green);
+    border: 2px solid var(--fidas-green-border);
+    box-sizing: border-box;
+}
+.idonei-mine-no {
+    color: var(--fidas-black);
+    border-left-color: var(--fidas-red);
+    font-style: normal;
+}
+.idonei-mine-no::before {
+    background: var(--fidas-red);
+    border-color: #7f0a1d;
+}
 
 .idonei-nav { margin: 24px 0 10px; }
 
