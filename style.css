@@ -6,6 +6,8 @@
     --fidas-blue: #003d7a;
     --fidas-light-blue: #4a90e2;
     --fidas-green: #28a745;          /* verde brillante: pallini, bordi */
+    --fidas-green-text: #168a2f;     /* verde per testo su sfondo chiaro */
+    --fidas-name-muted: #8d949b;     /* grigio chiaro per i nomi degli altri donatori */
     --fidas-green-strong: #1e7e34;   /* verde pieno: sfondo riga evidenziata con testo bianco */
     --fidas-green-border: #14532d;   /* contorno scuro del verde */
     --fidas-orange: #ff9800;
@@ -879,27 +881,21 @@ tr:nth-child(odd) {
     font-size: 0.6em; 
 }
 
-/* Evidenziazione prenotazione utente loggato: pallino verde + nome intero in nero grassetto, allineato a sinistra
+/* Evidenziazione prenotazione utente loggato: matricola + nome intero in verde grassetto, allineato a sinistra
    (nessun padding verticale: l'altezza resta uguale alle altre righe e ai numeri dei posti) */
 .prenotazione-nome.user-booking {
-    color: var(--fidas-black);
+    color: var(--fidas-green-text);
     font-weight: 700;
-    justify-content: flex-start;
 }
 
 .prenotazione-nome.user-booking span {
-    color: var(--fidas-black);
+    color: var(--fidas-green-text);
 }
 
-.prenotazione-nome.user-booking::before {
-    content: '';
-    flex: 0 0 14px;
-    width: 14px; height: 14px;
-    margin-right: 8px;
-    border-radius: 50%;
-    background: var(--fidas-green);
-    border: 2px solid var(--fidas-green-border);
-    box-sizing: border-box;
+/* Gli altri nomi (vista donatore): grigio chiaro, secondari. L'admin li vede in nero. */
+.prenotazione-nome.altro-nome,
+.prenotazione-nome.altro-nome span {
+    color: var(--fidas-name-muted);
 }
 
 .page-name-input, 
@@ -1096,14 +1092,14 @@ select.slot-select option:disabled {
 /* 3ª Colonna: PERSONE (Ristretta) */
 .table-scroll table.prenotazioni-table th:nth-child(3),
 .table-scroll table.prenotazioni-table td:nth-child(3) {
-    width: 150px !important; /* Forza una larghezza compatta per la colonna persone */
+    width: 170px !important; /* Forza una larghezza compatta per la colonna persone */
     overflow-wrap: break-word !important;
 }
 
 /* 4ª Colonna: POSTI (Allargata per 'COMPLETO') */
 .table-scroll table.prenotazioni-table th:nth-child(4),
 .table-scroll table.prenotazioni-table td:nth-child(4) {
-    width: 170px !important; /* Dà abbastanza spazio al badge COMPLETO */
+    width: 150px !important; /* Dà abbastanza spazio al badge COMPLETO */
     text-align: center !important;
 }
 
@@ -1646,24 +1642,30 @@ button.exit, .register-btn, .landing-login-btn,
     margin: 05px;
 }
 .idonei-mine-line .nome-cap { text-transform: capitalize; }
-/* pallino pieno davanti all'esito: verde = presente, rosso = non presente */
+/* pallino grande con icona: verde + spunta = presente; rosso + X = non presente / lista assente */
 .idonei-mine-line::before {
-    content: '';
-    display: inline-block;
-    width: 18px; height: 18px;
-    margin-right: 12px;
-    vertical-align: -2px;
+    content: '\2713';
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px; height: 30px;
+    margin-right: 14px;
+    vertical-align: middle;
     border-radius: 50%;
     background: var(--fidas-green);
     border: 2px solid var(--fidas-green-border);
     box-sizing: border-box;
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 900;
+    line-height: 1;
 }
 .idonei-mine-no {
-    color: var(--fidas-black);
-    border-left-color: var(--fidas-red);
+    color: var(--fidas-red);
     font-style: normal;
 }
 .idonei-mine-no::before {
+    content: '\2715';
     background: var(--fidas-red);
     border-color: #7f0a1d;
 }

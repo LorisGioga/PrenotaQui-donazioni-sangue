@@ -33,7 +33,7 @@
                 <span class="app-brand-version">v2</span>
             </div>
             
-            <p style="margin-bottom:70px; margin-top: 70px; font-size:1.8em; color: var(--fidas-black); text-align:center;">
+            <p style="margin-bottom:70px; margin-top: 20px; font-size:1.1em; color: var(--fidas-gray); text-align:center;">
                 Prenota la tua Donazione Online
             </p>  
                                     
@@ -182,11 +182,13 @@
             </h2>
                       
             <p style="margin: 50px 0px  0px  20px ; font-size:1em; color:#6B7280; text-align:left;">
-            Esito del controllo nell'elenco:
+            Esito del controllo:
             </p>  
-                <p v-if="idoneiList.length === 0" style="color:#6B7280; font-style:italic; text-align:center; margin:30px 0;">
-                Nessuna lista disponibile al momento. Prova con «Aggiorna Lista» qui sotto.
-                </p>
+                <div v-if="idoneiList.length === 0" class="idonei-mine">
+                    <p class="idonei-mine-line idonei-mine-no">
+                    Nessuna lista disponibile al momento. Prova con «Aggiorna Lista» qui sotto.
+                    </p>
+                </div>
                
             <div v-else class="idonei-mine">
                 <p v-if="mioIdoneo" class="idonei-mine-line">
@@ -528,7 +530,7 @@
                             <td><div class="seat-number" v-for="j in seatsPerSlot" :key="j">{{ slot.id*seatsPerSlot + j }}</div></td>
                             <td>
                                 <div v-for="b of bookingsBySlot[slot.id]" :key="b.key" class="prenotazione-nome"
-                                     :class="{ 'user-booking': user.matricola && String(b.matricola) === String(user.matricola) }">
+                                     :class="{ 'user-booking': user.matricola && String(b.matricola) === String(user.matricola), 'altro-nome': !isAdmin && !(user.matricola && String(b.matricola) === String(user.matricola)) }">
                                     <span>{{ b.matricola }} {{ isAdmin ? b.name : mask(b.name, b.matricola) }}</span>
                                     <button v-if="isAdmin" @click="removeBooking(b.key)">Cancella</button>
                                 </div>
