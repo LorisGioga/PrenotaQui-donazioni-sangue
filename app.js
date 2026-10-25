@@ -1,17 +1,21 @@
 // ===================================================================
-//Programma Prenotazioni PrenotaQui 2.2 - 07/02/2026 - FIXED VERSION
+//Programma Prenotazioni PrenotaQui EVO - 07/02/2026 - FIXED VERSION
 // ===================================================================
 // 1. Importazioni Firebase e Vue.js
 // ===================================================================
 //
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js';
-import { getDatabase, ref, push, onValue, set, get, child, remove, update } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
+import { getDatabase, ref, push, onValue, set, get, child, remove, update } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js';
 
-const { createApp, reactive, ref: vueRef } = Vue;
+const { createApp, reactive, ref: vueRef, computed, watch } = Vue;
 //=====================================================================
 // 2. Configurazione Firebase: Fidas San Giusto Can 2
 //=====================================================================
+// >>> PrenotaQui EVO: incolla qui i dati del NUOVO progetto Firebase "PrenotaQui EVO"
+// (Firebase > Impostazioni progetto > Le tue app > Configurazione SDK).
+
+// Database. Fidas San Giusto Can 2
 const firebaseConfig = {
   apiKey: "AIzaSyAoToelGIbZy2w_Kk0u4HDFIB56AuQNwRU",
   authDomain: "fidas-san-giusto-can-2.firebaseapp.com",
@@ -21,10 +25,11 @@ const firebaseConfig = {
   messagingSenderId: "963864891985",
   appId: "1:963864891985:web:33161373f6712197751e70"
 };
+if (String(firebaseConfig.apiKey).startsWith('INCOLLA')) {
+  alert('Manca la configurazione Firebase di EVO: apri app.js e incolla i dati del progetto al posto di INCOLLA-QUI.');
+  throw new Error('Configurazione Firebase mancante');
+}
 
-
-//
-// 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 auth.languageCode = 'it'; // Forza l'italiano nelle email di Firebase (reset password, ecc.)
@@ -41,9 +46,26 @@ createApp({
     //=====================================================================
     // 
     
+    // Link alla guida all'uso dell'app (pagina del sito del Gruppo).
+    // Incolla qui l'indirizzo completo: finché è vuoto, i pulsanti Guida non compaiono.
+    const GUIDA_URL = 'https://sites.google.com/view/fidas-gruppo-san-giusto-can/prenotazioni/guida-per-lapp-prenotaqui';
+
     const view = vueRef('landing');
+    // Mostra/nascondi password nel login
+    const showPwd = vueRef(false);
+    // Il :class scritto su #app in index.html non viene letto da Vue 3 (#app è il contenitore di mount),
+    // quindi segno io la pagina di login con la classe "is-landing", usata dal CSS
+    const appEl = document.getElementById('app');
+    watch(view, v => {
+      if (appEl) appEl.classList.toggle('is-landing', v === 'landing' || v === 'register');
+    }, { immediate: true });
+    // Ad ogni cambio pagina, torna in cima (utile da telefono)
+    watch(view, () => {
+      showPwd.value = false;
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }, { flush: 'post' });
     const seatsPerSlot = vueRef(6);
-    const user = reactive({ lastName:'', firstName:'', matricola:'', email:'', password:'', pageChoice:'page1' });
+    const user = reactive({ lastName:'', firstName:'', matricola:'', email:'', password:'', pageChoice:'' });
     const booking = reactive({ matricola:'', name:'', slot: null });
     const slots = [
       { id:0, label:'Fascia 1: 07:50 – 08:05' }, { id:1, label:'Fascia 2: 08:10 – 08:30' },
@@ -53,23 +75,70 @@ createApp({
       { id:8, label:'Riserve' }
     ];
     const bookingsBySlot = reactive({});
+    const bookingsLoaded = vueRef(false);   // true quando le prenotazioni sono state lette dal database
     const isAdmin = vueRef(false);
+    const menuOpen = vueRef(false);
     const pageNames = reactive({}); 
     const blocks = reactive({});
     const newPageName = vueRef('');
-    const idoneiList = reactive([]);
-    const idoneiTitle = vueRef('Elenco Persone Idonee Pangea');
+    const idoneiAll = reactive({});          // liste idonei: una per ogni data (chiave = chiave della data)
+    const idoneiTarget = vueRef(null);       // data a cui si sta caricando una lista Excel
     const fileInputIdonei = vueRef(null);
+    const MAX_DATE = 10;                     // numero massimo di date di donazione
     
-    // Landing Page - Link e Date - Initialize with proper defaults
-    const landingLinks = reactive({
-      fidasPiemonte: { title: 'FIDAS Piemonte', url: 'https://www.fidaspiemonte.it', enabled: true },
-      sanGiusto: { title: 'Sito San Giusto', url: 'https://sites.google.com/view/fidas-gruppo-san-giusto-can/home-page', enabled: true },
-      fidasUfficiale: { title: 'FIDAS Nazionale', url: 'https://www.fidas.it', enabled: true },
-      newsFidas: { title: 'News FIDAS', url: 'https://sites.google.com/view/fidas-gruppo-san-giusto-can/news', enabled: true }
+    const medicoEmail = vueRef('');
+    const donationPlace = vueRef('');
+
+    // Date donazioni: riconosce "17 Gennaio 2026" (anche con "Sabato" davanti, mese abbreviato
+    // oppure solo "Gennaio 2027" senza giorno: in quel caso vale fino a fine mese)
+    const mesiIt = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+    function parseDataIt(testo) {
+      const m = String(testo).toLowerCase().match(/(?:(\d{1,2})\s+)?([a-zà]{3,})\.?\s+(\d{4})/);
+      if (!m) return null;
+      const mese = mesiIt.findIndex(x => x.startsWith(m[2]));
+      if (mese < 0) return null;
+      const anno = Number(m[3]);
+      // senza giorno: vale fino a fine mese
+      return m[1]
+        ? new Date(anno, mese, Number(m[1]), 23, 59)
+        : new Date(anno, mese + 1, 0, 23, 59);
+    }
+
+    // Le date di donazione (max 10), in ordine di calendario. La prima futura è "Prossima data".
+    const sessions = computed(() => {
+      const ora = new Date();
+      const lista = Object.keys(pageNames).map((key, i) => {
+        const label = String(pageNames[key] || '');
+        const data = parseDataIt(label);
+        return { key, label, data, passata: data ? data < ora : false, blocked: !!blocks[key], ordine: i };
+      });
+      lista.sort((a, b) => (a.data && b.data) ? a.data - b.data : (a.data ? -1 : (b.data ? 1 : a.ordine - b.ordine)));
+      let trovata = false;
+      lista.forEach(s => { s.prossima = !s.passata && !trovata; if (s.prossima) trovata = true; });
+      return lista;
     });
-    const donationDates = reactive(['', '', '', '', '', '', '', '']);
-    const medicoEmail = vueRef('medico@fidas-sangiusto.it');
+
+    // Date che l'utente può aprire: l'admin tutte, gli altri solo quelle NON bloccate
+    const sessionsAccessibili = computed(() =>
+      sessions.value.filter(s => isAdmin.value || !s.blocked)
+    );
+
+    // Se la data scelta non esiste più, ripiega sulla prossima data
+    function fixPageChoice() {
+      const lista = sessions.value;
+      if (lista.length && !lista.some(s => s.key === user.pageChoice)) {
+        user.pageChoice = (lista.find(s => s.prossima) || lista[0]).key;
+      }
+    }
+    watch(sessions, fixPageChoice);
+
+    // Lista idonei della data scelta, e riga dell'utente loggato (null se non presente)
+    const idoneiList = computed(() => idoneiAll[user.pageChoice] || []);
+    const idoneiAllCount = key => (idoneiAll[key] || []).length;
+    const mioIdoneo = computed(() => {
+      if (!user.matricola) return null;
+      return idoneiList.value.find(p => String(p.matricola) === String(user.matricola)) || null;
+    });
     
     // Footer contacts
     const footerContacts = reactive({
@@ -79,14 +148,23 @@ createApp({
       address: '',
       website: ''
     });
+
+    // Privacy in overlay (testo mostrato in un pulsante/modale invece che inline)
+    const showPrivacy = vueRef(false);
+
+    // Pulsanti di collegamento in home: News, Sospensioni, e un terzo generico
+    const quickLinks = reactive({
+      news: { url: '', desc: '' },
+      sospensioni: { url: '', desc: '' },
+      extra: { url: '', desc: '', label: '' }
+    });
     
     const texts = reactive({ 
-      landing:'Se sei un nuovo donatore o non fai parte di questo gruppo, contatta il N. 333.78.36.256 o uno del Direttivo, ci penseremo noi ad inserirti nella lista.', 
-      pageSelect:"Si prega di avere con sé la carta d' IDENTITA' ed il tesserino FIDAS" 
+      plasma: '',
+      privacy: "Ai sensi del Regolamento (UE) 2016/679 (GDPR), informiamo che i dati personali inseriti nel presente modulo di prenotazione sono trattati esclusivamente per finalità organizzative legate alla donazione di sangue. Il trattamento è svolto da persone autorizzate dal Presidente del Gruppo FIDAS San Giusto, Titolare del trattamento, nell'ambito delle attività associative e in conformità all'informativa sottoscritta dal donatore al momento dell'iscrizione alla FIDAS. I dati raccolti non saranno utilizzati per altri scopi e non saranno comunicati a soggetti terzi, salvo obblighi di legge. Il trattamento avviene nel rispetto delle misure di sicurezza previste dalla normativa vigente. Per ulteriori informazioni sul trattamento dei dati, è possibile consultare l'Informativa Privacy FIDAS disponibile presso la sede o richiederne copia al momento della donazione."
     });
     
     const fileInput = vueRef(null);
-    const adminPass = vueRef('');
 
     // SISTEMA MODALE
     const modal = reactive({
@@ -149,34 +227,50 @@ createApp({
       modal.input = '';
     }
 
-    // INIZIALIZZAZIONI DB
-    // I dati vengono caricati dai listener onValue qui sotto.
-    // Lettura iniziale di pageNames per impostare user.pageChoice correttamente.
-    get(ref(db, 'pageNames')).then(s => { 
-      if (s.exists() && Object.keys(s.val() || {}).length > 0) {
-        const keys = Object.keys(s.val());
-        if (!keys.includes(user.pageChoice)) {
-             user.pageChoice = keys[0];
-        }
-      }
-    }).catch(() => {});
+    // LETTURE DAL DATABASE
+    // Partono solo dopo il login (e si fermano all'uscita): nel database non c'è nulla di pubblico.
+    let unsubs = [];
+    const toArray = v => Array.isArray(v) ? v.filter(Boolean) : (v && typeof v === 'object' ? Object.values(v) : []);
+    const replaceKeys = (target, data) => { Object.keys(target).forEach(k => delete target[k]); Object.assign(target, data || {}); };
 
-    get(ref(db, 'seatsPerSlot')).then(s => { 
-      if (s.exists()) seatsPerSlot.value = s.val();
-    }).catch(() => {});
+    function startListeners() {
+      if (unsubs.length) return;
+      const on = (path, cb) => unsubs.push(onValue(ref(db, path), cb, err => console.warn('Lettura non riuscita:', path, err && err.code)));
+      on('pageNames', s => replaceKeys(pageNames, s.val()));
+      on('blocks', s => replaceKeys(blocks, s.val()));
+      on('h4Texts', s => s.val() && Object.assign(texts, s.val()));
+      on('seatsPerSlot', s => { if (s.exists()) seatsPerSlot.value = s.val(); });
+      on('idonei', s => {
+        const dati = s.val() || {};
+        replaceKeys(idoneiAll, Object.fromEntries(Object.entries(dati).map(([k, v]) => [k, toArray(v)])));
+      });
+      on('medicoEmail', s => { medicoEmail.value = s.val() || ''; });
+      on('donationPlace', s => { donationPlace.value = s.val() || ''; });
+      on('footerContacts', s => { replaceKeys(footerContacts, s.val() || { email:'', phone:'', whatsapp:'', address:'', website:'' }); });
+      // Pulsanti News / Sospensioni / Extra in home
+      on('quickLinks', s => {
+        const data = s.val() || {};
+        quickLinks.news = data.news || { url: '', desc: '' };
+        quickLinks.sospensioni = data.sospensioni || { url: '', desc: '' };
+        quickLinks.extra = data.extra || { url: '', desc: '', label: '' };
+      });
+    }
+
+    function stopListeners() {
+      unsubs.forEach(u => { try { u(); } catch (e) { /* già chiuso */ } });
+      unsubs = [];
+    }
 
     const isRegistering = vueRef(false);
 
     onAuthStateChanged(auth, u => {
       if (u) {
+        startListeners();
         get(child(ref(db), `users/${u.uid}`))
           .then(snap => {
             if (snap.exists()) {
               Object.assign(user, snap.val());
-              if (!Object.keys(pageNames).includes(user.pageChoice)) {
-                user.pageChoice = Object.keys(pageNames)[0] || 'landing';
-              }
-              console.log("Dati utente caricati all'avvio:", user);
+              fixPageChoice();
             } else {
               // Se stiamo registrando, non disconnettere
               if (!isRegistering.value) {
@@ -189,9 +283,9 @@ createApp({
             console.error("Errore caricamento dati utente all'avvio:", dbError);
           });
       } else {
+        stopListeners();
         view.value = 'landing';
         isAdmin.value = false;
-        console.log("Nessun utente autenticato. Vado sulla landing page.");
         user.lastName = ''; 
         user.firstName = ''; 
         user.matricola = '';
@@ -200,56 +294,32 @@ createApp({
       }
     });
 
-    onValue(ref(db, 'pageNames'), snap => snap.val() && Object.assign(pageNames, snap.val()));
-    onValue(ref(db, 'h4Texts'), snap => snap.val() && Object.assign(texts, snap.val()));
-    onValue(ref(db, 'blocks'), snap => snap.val() && Object.assign(blocks, snap.val()));
-    onValue(ref(db,'adminPass'),s=>adminPass.value=s.val()||'admin123');
-    onValue(ref(db, 'seatsPerSlot'), s => {
-      if (s.exists()) {
-        seatsPerSlot.value = s.val();
-      }
-    });
-    
-    onValue(ref(db, 'idoneiList'), snap => {
-      const data = snap.val();
-      if (data && Array.isArray(data)) {
-        idoneiList.splice(0, idoneiList.length, ...data);
-      } else if (data && typeof data === 'object') {
-        const arr = Object.values(data);
-        idoneiList.splice(0, idoneiList.length, ...arr);
-      } else {
-        idoneiList.splice(0, idoneiList.length);
-      }
-    });
-    
-    onValue(ref(db, 'idoneiTitle'), snap => {
-      if (snap.exists()) {
-        idoneiTitle.value = snap.val();
-      }
-    });
-    
-    // === Landing Page Data ===
-    // Dati caricati dai listener onValue. I valori default sono già nei reactive object.
-    
-    onValue(ref(db, 'landingLinks'), snap => {
-      if (snap.val()) {
-        Object.assign(landingLinks, snap.val());
-      }
-    });
-    
-    onValue(ref(db, 'donationDates'), snap => {
-      if (snap.val()) donationDates.splice(0, donationDates.length, ...snap.val());
-    });
-    
-    onValue(ref(db, 'medicoEmail'), snap => {
-      if (snap.val()) medicoEmail.value = snap.val();
-    });
-    
-    onValue(ref(db, 'footerContacts'), snap => {
-      if (snap.val()) Object.assign(footerContacts, snap.val());
-    });
-
     const remaining = slot => seatsPerSlot.value - (bookingsBySlot[slot.id]?.length || 0);
+
+    // Numero progressivo del posto (stesso conteggio della tabella da computer): fascia * posti + posizione nella fascia
+    const posNumber = (slot, i) => slot.id * seatsPerSlot.value + i + 1;
+
+    // Tendine fatte da noi (al posto dei select del telefono, che si vedono giganti)
+    const slotMenuOpen = vueRef(false);
+    const dateMenuOpen = vueRef(false);
+    const slotScelta = computed(() => slots.find(s => s.id === booking.slot) || null);
+    function toggleSlotMenu() { if (giaPrenotato.value) return; const v = !slotMenuOpen.value; closeMenus(); slotMenuOpen.value = v; }
+    function toggleDateMenu() { const v = !dateMenuOpen.value; closeMenus(); dateMenuOpen.value = v; }
+    // Fascia piena: non si può scegliere (Riserve comprese). Solo l'admin può aggiungere oltre il limite nelle Riserve.
+    const slotPieno = slot => remaining(slot) <= 0 && !(slot.id === 8 && isAdmin.value);
+    function pickSlot(slot) {
+      if (slotPieno(slot)) return;
+      booking.slot = slot.id;
+      slotMenuOpen.value = false;
+    }
+    // Cambio data dalla tendina nella pagina idonei: le date bloccate non sono selezionabili (tranne per l'admin)
+    function pickDate(key) {
+      const s = sessions.value.find(x => x.key === key);
+      if (!s || (s.blocked && !isAdmin.value)) return;
+      user.pageChoice = key;
+      dateMenuOpen.value = false;
+    }
+    function closeMenus() { menuOpen.value = false; slotMenuOpen.value = false; dateMenuOpen.value = false; }
     
     const mask = (name, matricola) => {
       if (!name) return '';
@@ -262,64 +332,91 @@ createApp({
       return name.split(' ').map(p => p.slice(0,2)+'..').join(' ');
     };
 
-    function focusNext(e) {
-      const form = e.target.form;
-      if (!form) return; // Esci se non c'è un form
-      const idx = Array.prototype.indexOf.call(form, e.target);
-      if (idx > -1 && idx + 1 < form.elements.length) {
-        form.elements[idx + 1]?.focus();
+    // Pulisce l'e-mail: toglie gli spazi (la tastiera del telefono ne aggiunge spesso uno alla fine) e le maiuscole
+    function cleanEmail(e) {
+      return String(e || '').trim().toLowerCase();
+    }
+
+    // Messaggi di errore di Firebase Auth in italiano; in coda resta il codice, utile per capire cosa è successo
+    function authErrorMessage(error) {
+      const code = (error && error.code) || '';
+      const credenziali = 'E-mail o password non corrette. Controlla di averle scritte bene; se non ricordi la password usa «Password dimenticata?».';
+      const messaggi = {
+        'auth/invalid-email': "L'indirizzo e-mail non è scritto correttamente. Controlla di non aver lasciato spazi.",
+        'auth/invalid-credential': credenziali,
+        'auth/invalid-login-credentials': credenziali,
+        'auth/wrong-password': credenziali,
+        'auth/user-not-found': credenziali,
+        'auth/missing-password': 'Inserisci la password.',
+        'auth/too-many-requests': 'Troppi tentativi di accesso. Attendi qualche minuto e riprova, oppure usa «Password dimenticata?».',
+        'auth/network-request-failed': 'Connessione assente o instabile. Controlla internet e riprova.',
+        'auth/user-disabled': 'Questo account è stato disattivato. Contatta il Gruppo.',
+        'auth/email-already-in-use': 'Questa e-mail risulta già registrata. Torna alla pagina iniziale e accedi; se non ricordi la password usa «Password dimenticata?».',
+        'auth/weak-password': 'La password è troppo corta: servono almeno 6 caratteri.',
+        'auth/web-storage-unsupported': 'Il browser blocca il salvataggio dei dati del sito (navigazione privata?). Prova con un altro browser.'
+      };
+      if (messaggi[code]) return `${messaggi[code]} (codice: ${code})`;
+      return `Si è verificato un errore imprevisto. ${code ? '(codice: ' + code + ')' : ((error && error.message) || '')}`.trim();
+    }
+
+    // Salva i dati del nuovo utente subito dopo la creazione dell'account.
+    // Se Firebase non ha ancora attivato l'accesso (permesso negato) riprova poco dopo, al massimo 3 volte.
+    async function saveProfile(uid, profile) {
+      for (let tentativo = 1; ; tentativo++) {
+        try {
+          await set(ref(db, `users/${uid}`), profile);
+          return;
+        } catch (e) {
+          const permessoNegato = String((e && (e.code || e.message)) || '').toUpperCase().includes('PERMISSION');
+          if (!permessoNegato || tentativo >= 3) throw e;
+          await new Promise(resolve => setTimeout(resolve, 800));
+        }
       }
     }
 
     async function register() {
-      if (!validateAuthFields()) return;
+      if (isRegistering.value) return; // evita il doppio tocco su "Continua"
 
+      user.email = cleanEmail(user.email);
+      user.lastName = String(user.lastName || '').trim();
+      user.firstName = String(user.firstName || '').trim();
+      user.matricola = String(user.matricola || '').trim();
+      if (!(await validateAuthFields())) return;
+
+      isRegistering.value = true;
+      let accountCreato = false;
       try {
-        isRegistering.value = true;
-        
         const cred = await createUserWithEmailAndPassword(auth, user.email, user.password);
-        
-        // Aspetta che Firebase aggiorni l'autenticazione
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        await set(ref(db, `users/${cred.user.uid}`), {
+        accountCreato = true;
+
+        // I dati si salvano subito, senza attese fisse
+        await saveProfile(cred.user.uid, {
           lastName: user.lastName,
           firstName: user.firstName,
           matricola: user.matricola,
           email: user.email
         });
-        
-        Object.assign(user, {
-          lastName: user.lastName,
-          firstName: user.firstName,
-          matricola: user.matricola,
-          email: user.email
-        });
-        
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
+
         isRegistering.value = false;
-        
         await showAlert('Registrazione effettuata con successo! Ora puoi procedere.');
-        view.value = 'idoneiPage';
-        
+        view.value = 'home';
+
       } catch (error) {
         isRegistering.value = false;
         console.error("Errore registrazione:", error);
-        await showAlert(`Errore durante la registrazione: ${error.message}`);
+        if (accountCreato) {
+          await showAlert("L'account è stato creato ma non siamo riusciti a salvare i tuoi dati. Torna alla pagina iniziale e contatta il Gruppo, indicando la tua e-mail.", 'Registrazione incompleta');
+        } else {
+          await showAlert(authErrorMessage(error), 'Registrazione non riuscita');
+        }
       }
     }
-    
+
     function forceReloadIdonei() {
-      get(ref(db, 'idoneiList')).then(snap => {
-        const data = snap.val();
-        if (data && Array.isArray(data)) {
-          idoneiList.splice(0, idoneiList.length, ...data);
-        } else if (data && typeof data === 'object') {
-          const arr = Object.values(data);
-          idoneiList.splice(0, idoneiList.length, ...arr);
-        }
-        showAlert(`Lista aggiornata! ${idoneiList.length} persone caricate.`);
+      const key = user.pageChoice;
+      get(ref(db, `idonei/${key}`)).then(snap => {
+        idoneiAll[key] = toArray(snap.val());
+        showAlert(`Lista aggiornata! ${idoneiAll[key].length} persone caricate.`);
       }).catch(err => {
         showAlert('Errore nel caricamento della lista: ' + err.message);
       });
@@ -327,19 +424,21 @@ createApp({
 
     async function login() {
       // Per il login servono SOLO email e password
-      if (!user.email || !user.password) {
+      const email = cleanEmail(user.email);
+      user.email = email;
+      if (!email || !user.password) {
         await showAlert('Per favore, inserisci E-mail e Password per accedere.');
         return;
       }
 
       try {
-        const cred = await signInWithEmailAndPassword(auth, user.email, user.password);
+        const cred = await signInWithEmailAndPassword(auth, email, user.password);
         const snap = await get(child(ref(db), `users/${cred.user.uid}`));
-        
+
         if (snap.exists()) {
           Object.assign(user, snap.val());
           await showAlert('Accesso effettuato con successo!');
-          view.value = 'idoneiPage';
+          view.value = 'home';
         } else {
           console.warn("Utente autenticato (Auth) ma dati profilo mancanti nel DB:", cred.user.uid);
           await showAlert('Accesso effettuato, ma dati profilo non trovati nel database. Contatta l\'amministrazione.');
@@ -347,18 +446,17 @@ createApp({
         }
       } catch (error) {
         console.error("Errore login:", error);
-        await showAlert(`Errore durante l\'accesso: ${error.message}`);
+        await showAlert(authErrorMessage(error), 'Accesso non riuscito');
       }
     }
 
-    // NUOVA FUNZIONE: Recupero password tramite email nativa di Firebase Auth
+    // Recupero password tramite email nativa di Firebase Auth
     async function resetPassword() {
-      let email = user.email && user.email.trim();
+      let email = cleanEmail(user.email);
 
       if (!email) {
-        email = await showPrompt('Inserisci la tua email per ricevere il link di reimpostazione password:');
+        email = cleanEmail(await showPrompt('Inserisci la tua email per ricevere il link di reimpostazione password:'));
         if (!email) return; // utente ha annullato
-        email = email.trim();
       }
 
       try {
@@ -369,7 +467,7 @@ createApp({
         if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-email') {
           await showAlert('Non troviamo nessun account registrato con questa email. Verifica di averla scritta correttamente.');
         } else {
-          await showAlert(`Errore durante l'invio dell'email di reset: ${error.message}`);
+          await showAlert(authErrorMessage(error));
         }
       }
     }
@@ -400,7 +498,7 @@ createApp({
         return;
       }
       if (!Object.keys(pageNames).includes(user.pageChoice)) {
-        await showAlert("Selezione pagina non valida. Scegli una pagina disponibile.");
+        await showAlert("Questa data non è più disponibile. Torna alla Home e scegline un'altra.");
         return;
       }
       
@@ -410,20 +508,54 @@ createApp({
         return;
       }
       
+      // Solo chi è nella lista idonei può prenotare (l'admin no: può sempre entrare)
+      if (!isAdmin.value && !mioIdoneo.value) {
+        await showAlert("Non risulti nella lista degli idonei per questa data: non puoi prenotare. Se pensi sia un errore, contatta il Gruppo.");
+        return;
+      }
+      
       view.value = user.pageChoice; 
       loadBookings();
     }
 
-    function loadBookings() { 
-      onValue(ref(db, `${user.pageChoice}/prenotazioni`), snap => { 
+    let unsubBookings = null;
+    function loadBookings() {
+      if (unsubBookings) unsubBookings();
+      bookingsLoaded.value = false;
+      unsubBookings = onValue(ref(db, `prenotazioni/${user.pageChoice}`), snap => { 
         const data=snap.val()||{}; 
         slots.forEach(s=>bookingsBySlot[s.id]=[]); 
-        Object.entries(data).forEach(([key,b])=>bookingsBySlot[b.slot].push({...b,key})); 
-      }); 
+        Object.entries(data).forEach(([key,b])=>{ if (bookingsBySlot[b.slot]) bookingsBySlot[b.slot].push({...b,key}); }); 
+        bookingsLoaded.value = true;
+      }, () => { bookingsLoaded.value = false; }); 
     }
 
+    // La prenotazione dell'utente loggato per la data aperta, letta dal database (null se non c'è)
+    const miaPrenotazione = computed(() => {
+      if (!user.matricola) return null;
+      for (const s of slots) {
+        const lista = bookingsBySlot[s.id] || [];
+        const i = lista.findIndex(x => String(x.matricola) === String(user.matricola));
+        if (i >= 0) return { fascia: s.id === 8 ? 'Riserve' : s.label, key: lista[i].key, pos: posNumber(s, i) };
+      }
+      return null;
+    });
+
+    // Utente normale già prenotato per questa data: pulsante Prenota e tendina fasce si disattivano
+    const giaPrenotato = computed(() => !isAdmin.value && !!miaPrenotazione.value);
+    // Utente normale non presente nella lista idonei della data scelta: il pulsante Avanti si disattiva
+    const nonIdoneo = computed(() => !isAdmin.value && !mioIdoneo.value);
+
     // MODIFICA: Admin bypass anche nella prenotazione
+    // Il pulsante Prenota non parte due volte se si tocca in fretta
+    const isBooking = vueRef(false);
     async function book() {
+      if (isBooking.value) return;
+      isBooking.value = true;
+      try { await bookInner(); } finally { isBooking.value = false; }
+    }
+
+    async function bookInner() {
       if (!auth.currentUser) {
         await showAlert("Devi accedere per prenotare.");
         view.value = 'landing';
@@ -433,6 +565,16 @@ createApp({
       // ADMIN BYPASS: se è admin, può prenotare anche se pagina bloccata
       if (!isAdmin.value && blocks[user.pageChoice]) {
         await showAlert('La pagina è bloccata. Non puoi prenotare al momento.');
+        return;
+      }
+      
+      if (!isAdmin.value && !mioIdoneo.value) {
+        await showAlert('Non risulti nella lista degli idonei per questa data: non puoi prenotare.');
+        return;
+      }
+
+      if (giaPrenotato.value) {
+        await showAlert('Risulti già prenotato per questa data.');
         return;
       }
       
@@ -448,11 +590,11 @@ createApp({
       }
 
       try {
-        const pageKeys = Object.keys(pageNames);
+        const pageKeys = sessions.value.filter(s => !s.passata).map(s => s.key);
         for (let p of pageKeys) {
-          const snap = await get(ref(db, `${p}/prenotazioni`));
+          const snap = await get(ref(db, `prenotazioni/${p}`));
           const list = snap.val() ? Object.values(snap.val()) : [];
-          if (list.find(b => b.matricola === matricolaToCheck)) {
+          if (list.find(b => String(b.matricola) === String(matricolaToCheck))) {
             booking.name = '';
             booking.matricola = '';
             booking.slot = null;
@@ -468,24 +610,42 @@ createApp({
         }
 
         const currentSlotBookings = bookingsBySlot[booking.slot] || [];
-        const maxSeats = booking.slot === 8 ? 9999 : seatsPerSlot.value;
+        const maxSeats = (booking.slot === 8 && isAdmin.value) ? 9999 : seatsPerSlot.value;
 
         if (currentSlotBookings.length >= maxSeats) {
           await showAlert(`Posti esauriti per la fascia selezionata (${slots.find(s => s.id === booking.slot).label}).`);
           return;
         }
 
-        await push(ref(db, `${user.pageChoice}/prenotazioni`), {
-          name: nome,
-          matricola: matricolaToCheck,
-          slot: booking.slot
-        });
+        const slotScelto = slots.find(s => s.id === booking.slot);
+        const slotId = booking.slot;
+        const percorso = `prenotazioni/${user.pageChoice}`;
+        const nuovaKey = push(ref(db, percorso)).key;
+        const record = { name: nome, matricola: matricolaToCheck, slot: slotId };
+
+        // Ultimo controllo con i dati appena letti dal database (non quelli già sullo schermo)
+        const fresche = await get(ref(db, percorso));
+        const lista = fresche.val() ? Object.values(fresche.val()) : [];
+        if (lista.some(x => String(x.matricola) === String(matricolaToCheck))) {
+          await showAlert('Questa matricola risulta già prenotata per questa data.');
+          return;
+        }
+        if (lista.filter(x => x.slot === slotId).length >= maxSeats) {
+          await showAlert(`Posti esauriti per la fascia selezionata (${slotScelto.label}).`);
+          return;
+        }
+
+        await set(ref(db, `${percorso}/${nuovaKey}`), record);
+
+        // Controllo: la prenotazione deve esistere davvero nel database
+        const verifica = await get(ref(db, `${percorso}/${nuovaKey}`));
+        if (!verifica.exists()) throw new Error('La prenotazione non risulta salvata nel database. Riprova.');
 
         booking.name = '';
         booking.matricola = '';
         booking.slot = null;
 
-        await showAlert('Prenotazione registrata con successo!');
+        await showAlert(`Prenotazione registrata e verificata nel database: ${slotScelto.id === 8 ? 'Riserve' : slotScelto.label}, ${pageNames[user.pageChoice]}.`);
 
       } catch (error) {
         console.error("Errore durante la prenotazione:", error);
@@ -503,21 +663,24 @@ createApp({
       if (confirmed) book();
     }
 
+    // Admin: non c'è più una password nel database. Si è admin se l'account è nell'elenco admins/{uid}
+    // (lo aggiungi a mano dalla console Firebase) e le regole del database lo verificano anche in scrittura.
     async function adminLogin() {
-      const p = await showPrompt('Inserisci la password admin:');
-      if (!p) return;
-      
       try {
-        const s = await get(ref(db,'adminPass'));
-        if(s.exists() && s.val()===p) {
-          isAdmin.value=true;
+        if (!auth.currentUser) {
+          await showAlert('Devi accedere per entrare nell\'Area riservata.');
+          return;
+        }
+        const s = await get(ref(db, `admins/${auth.currentUser.uid}`));
+        if (s.val() === true) {
+          isAdmin.value = true;
           await showAlert('Accesso Admin effettuato');
         } else {
-          await showAlert('Password admin errata');
+          await showAlert('Questo account non è abilitato come amministratore.');
         }
       } catch (e) {
-        console.error("Errore lettura password admin:", e);
-        await showAlert("Errore nel verificare la password admin.");
+        console.error("Errore verifica admin:", e);
+        await showAlert("Errore nel verificare l'accesso admin: " + (e && e.message ? e.message : e));
       }
     }
 
@@ -526,10 +689,75 @@ createApp({
       await showAlert('Uscito Area Riservata'); 
     }
 
+    // ---- Menu a tendina nella barra in alto ----
+    function goMenu(destinazione) {
+      menuOpen.value = false;
+      view.value = destinazione;
+    }
+    async function menuAdmin() {
+      menuOpen.value = false;
+      await adminLogin();
+      if (isAdmin.value) view.value = 'adminPage';
+    }
+    async function menuExitAdmin() {
+      menuOpen.value = false;
+      await exitAdmin();
+      if (view.value === 'adminPage') view.value = 'home';
+    }
+    // Home: tocco su una data -> prima la lista degli idonei di quella data.
+    // Le date passate e (per gli utenti normali) quelle bloccate non si aprono.
+    function chooseDate(key) {
+      const s = sessions.value.find(x => x.key === key);
+      if (!s || s.passata) return;
+      if (s.blocked && !isAdmin.value) {
+        showAlert('Le prenotazioni per questa data sono chiuse.');
+        return;
+      }
+      user.pageChoice = key;
+      view.value = 'idoneiPage';
+    }
+    // Voci del menu in alto: una per ogni data
+    function menuDate(cosa, key) {
+      menuOpen.value = false;
+      if (cosa === 'idonei') chooseDate(key); else adminOpenBookings(key);
+    }
+    // Area admin: apre le prenotazioni di una data (con Excel, reset ecc.)
+    function adminOpenBookings(key) {
+      user.pageChoice = key;
+      view.value = key;
+      loadBookings();
+    }
+
+    // Se l'admin blocca la data mentre un utente sta guardando la sua lista idonei, lo rimandiamo in Home
+    watch(() => blocks[user.pageChoice], b => {
+      if (b && !isAdmin.value && view.value === 'idoneiPage') {
+        view.value = 'home';
+        showAlert('Le prenotazioni per questa data sono state chiuse.');
+      }
+    });
+
+    // il menu si chiude con un tocco fuori o con Esc
+    document.addEventListener('click', closeMenus);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenus(); });
+
+    // Stampa / PDF: le tendine degli elenchi si aprono da sole prima di stampare e si richiudono dopo
+    let tendineAperte = [];
+    window.addEventListener('beforeprint', () => {
+      document.querySelectorAll('details.idonei-details').forEach(d => { if (!d.open) { d.open = true; tendineAperte.push(d); } });
+    });
+    window.addEventListener('afterprint', () => {
+      tendineAperte.forEach(d => { d.open = false; });
+      tendineAperte = [];
+    });
+
     async function addPage() {
       const name = newPageName.value.trim();
       if (!name) {
-        await showAlert('Inserisci un nome per la nuova pagina.');
+        await showAlert('Scrivi la data della donazione (es. Sabato 17 Gennaio 2027).');
+        return;
+      }
+      if (Object.keys(pageNames).length >= MAX_DATE) {
+        await showAlert(`Puoi inserire al massimo ${MAX_DATE} date. Rimuovi una data passata per farne posto.`);
         return;
       }
       
@@ -541,41 +769,28 @@ createApp({
       
       try {
         await update(ref(db), updates);
-        await showAlert(`Pagina "${name}" aggiunta con successo.`);
         newPageName.value = '';
+        await showAlert(`Data "${name}" aggiunta.`);
       } catch (e) {
         console.error("Errore addPage:", e);
-        await showAlert('Errore durante l\'aggiunta della pagina');
+        await showAlert('Errore durante l\'aggiunta della data: ' + e.message);
       }
     }
     
     async function removePage(key) {
-      if(Object.keys(pageNames).length <= 1) {
-        await showAlert('Non puoi eliminare l\'ultima pagina disponibile.');
-        return;
-      }
-      
       const pageName = pageNames[key];
-      const confirmed = await showConfirm(`ATTENZIONE: Eliminare la pagina "${pageName}" cancellerà TUTTE le prenotazioni ad essa associate. Confermi?`);
+      const confirmed = await showConfirm(`ATTENZIONE: eliminando la data "${pageName}" si cancellano anche TUTTE le sue prenotazioni e la sua lista idonei. Confermi?`);
       
       if(confirmed){
-        delete pageNames[key];
-        delete blocks[key];
-        
         try {
-          await remove(ref(db, `pageNames/${key}`));
+          await remove(ref(db, `prenotazioni/${key}`));
+          await remove(ref(db, `idonei/${key}`));
           await remove(ref(db, `blocks/${key}`));
-          await remove(ref(db, key));
-          await showAlert(`Pagina "${pageName}" eliminata con successo.`);
-          
-          if (user.pageChoice === key) {
-            const remainingKeys = Object.keys(pageNames);
-            user.pageChoice = remainingKeys.length > 0 ? remainingKeys[0] : 'page1';
-          }
+          await remove(ref(db, `pageNames/${key}`));
+          await showAlert(`Data "${pageName}" eliminata.`);
         } catch (e) {
           console.error("Errore removePage:", e);
-          await showAlert(`Errore durante l'eliminazione della pagina: ${e.message}`);
-          location.reload();
+          await showAlert(`Errore durante l'eliminazione della data: ${e.message}`);
         }
       }
     }
@@ -600,10 +815,6 @@ createApp({
       set(ref(db,`blocks/${p}`), blocks[p]).catch(e => console.error("Errore updateBlock:", e)); 
     }
     
-    function updateAdminPass() { 
-      set(ref(db,'adminPass'), adminPass.value).catch(e => console.error("Errore updateAdminPass:", e)); 
-    }
-    
     async function updateSeatsPerSlot() {
       const newValue = parseInt(seatsPerSlot.value);
       if (isNaN(newValue) || newValue < 1 || newValue > 20) {
@@ -621,25 +832,6 @@ createApp({
       }
     }
     
-    // === Landing Page Admin Functions ===
-    async function updateLandingLink(key, field, value) {
-      try {
-        await set(ref(db, `landingLinks/${key}/${field}`), value);
-      } catch (e) {
-        console.error("Errore updateLandingLink:", e);
-        await showAlert('Errore durante l\'aggiornamento del link');
-      }
-    }
-    
-    async function updateDonationDate(index) {
-      try {
-        await set(ref(db, 'donationDates'), donationDates);
-      } catch (e) {
-        console.error("Errore updateDonationDate:", e);
-        await showAlert('Errore durante l\'aggiornamento della data');
-      }
-    }
-    
     async function updateMedicoEmail() {
       try {
         await set(ref(db, 'medicoEmail'), medicoEmail.value);
@@ -649,6 +841,15 @@ createApp({
       }
     }
     
+    async function updateDonationPlace() {
+      try {
+        await set(ref(db, 'donationPlace'), donationPlace.value);
+      } catch (e) {
+        console.error("Errore updateDonationPlace:", e);
+        await showAlert('Errore durante l\'aggiornamento del luogo donazioni');
+      }
+    }
+
     async function updateFooterContact(field) {
       try {
         await set(ref(db, 'footerContacts'), footerContacts);
@@ -657,12 +858,22 @@ createApp({
         await showAlert('Errore durante l\'aggiornamento contatti footer');
       }
     }
+
+    // Aggiorna uno dei 3 pulsanti di collegamento (news / sospensioni / extra)
+    async function updateQuickLink(key) {
+      try {
+        await set(ref(db, `quickLinks/${key}`), quickLinks[key]);
+      } catch (e) {
+        console.error("Errore updateQuickLink:", e);
+        await showAlert('Errore durante l\'aggiornamento del pulsante di collegamento');
+      }
+    }
     
     async function removeBooking(key) {
       const confirmed = await showConfirm('Confermi cancellazione prenotazione?');
       if(confirmed){
         try {
-          await remove(ref(db,`${user.pageChoice}/prenotazioni/${key}`));
+          await remove(ref(db,`prenotazioni/${user.pageChoice}/${key}`));
         } catch (e) {
           console.error("Errore removeBooking:", e);
         }
@@ -673,7 +884,7 @@ createApp({
       const confirmed = await showConfirm('ATTENZIONE: Questa operazione cancellerà TUTTE le prenotazioni per questa pagina. Confermi reset?');
       if(confirmed){
         try {
-          await remove(ref(db,`${user.pageChoice}/prenotazioni`));
+          await remove(ref(db,`prenotazioni/${user.pageChoice}`));
         } catch (e) {
           console.error("Errore resetAll:", e);
         }
@@ -717,13 +928,13 @@ createApp({
           const confirmed = await showConfirm('ATTENZIONE: Importando, sovrascriverai TUTTE le prenotazioni attuali per questa pagina. Confermi carica?');
           
           if(confirmed){
-            await remove(ref(db,`${user.pageChoice}/prenotazioni`));
+            await remove(ref(db,`prenotazioni/${user.pageChoice}`));
             const updates = {};
             let rowErrors = 0;
             rows.forEach(r=>{
               const slotObj=slots.find(s=>(s.id===8?'Riserve':s.label)===r.Fascia);
               if(slotObj && r.Matricola && r.Nome) {
-                const newKey = push(ref(db,`${user.pageChoice}/prenotazioni`)).key;
+                const newKey = push(ref(db,`prenotazioni/${user.pageChoice}`)).key;
                 if (newKey) {
                   updates[newKey] = { name:r.Nome, matricola:r.Matricola, slot:slotObj.id };
                 } else {
@@ -737,7 +948,7 @@ createApp({
             });
 
             if (Object.keys(updates).length > 0) {
-              await set(ref(db,`${user.pageChoice}/prenotazioni`), updates);
+              await set(ref(db,`prenotazioni/${user.pageChoice}`), updates);
               await showAlert(`Importazione Excel completata con successo! ${rowErrors > 0 ? `Attenzione: ${rowErrors} righe con errori o incomplete non sono state importate.` : ''}`);
             } else {
               await showAlert(`Nessun dato valido trovato nel file Excel da importare. ${rowErrors > 0 ? `(${rowErrors} righe con errori nel formato)` : ''}`);
@@ -753,7 +964,8 @@ createApp({
       }
     }
 
-    function importExcelIdonei() {
+    function importExcelIdonei(key) {
+      idoneiTarget.value = key;
       fileInputIdonei.value.click();
     }
 
@@ -808,8 +1020,8 @@ createApp({
           });
 
           if (newList.length > 0) {
-            await set(ref(db, 'idoneiList'), newList);
-            await showAlert(`Importazione completata! ${newList.length} persone idonee caricate. ${rowErrors > 0 ? `Attenzione: ${rowErrors} righe con errori non importate.` : ''}`);
+            await set(ref(db, `idonei/${idoneiTarget.value}`), newList);
+            await showAlert(`Importazione completata per «${pageNames[idoneiTarget.value] || ''}»! ${newList.length} persone idonee caricate. ${rowErrors > 0 ? `Attenzione: ${rowErrors} righe con errori non importate.` : ''}`);
           } else {
             await showAlert(`Nessun dato valido trovato nel file Excel. ${rowErrors > 0 ? `(${rowErrors} righe con errori nel formato)` : ''} Assicurati che il file abbia almeno le colonne: Matricola, Nome.`);
           }
@@ -823,36 +1035,11 @@ createApp({
       }
     }
 
-    async function updateIdoneiTitle() {
-      const nuovoTitolo = idoneiTitle.value.trim();
-      if (nuovoTitolo === '') {
-        await showAlert('Il titolo non può essere vuoto.');
-        // Ripristina il valore precedente
-        const s = await get(ref(db, 'idoneiTitle'));
-        if (s.exists()) {
-          idoneiTitle.value = s.val();
-        }
-        return;
-      }
-      try {
-        await set(ref(db, 'idoneiTitle'), nuovoTitolo);
-        await showAlert('Titolo aggiornato con successo!');
-      } catch (e) {
-        console.error("Errore updateIdoneiTitle:", e);
-        await showAlert('Errore durante l\'aggiornamento del titolo');
-        // In caso di errore, ripristina il valore da Firebase
-        const s = await get(ref(db, 'idoneiTitle'));
-        if (s.exists()) {
-          idoneiTitle.value = s.val();
-        }
-      }
-    }
-
-    async function resetIdoneiList() {
-      const confirmed = await showConfirm('ATTENZIONE: Questa operazione cancellerà l\'intera lista delle persone idonee. Confermi?');
+    async function resetIdoneiList(key) {
+      const confirmed = await showConfirm(`Cancellare la lista degli idonei di «${pageNames[key] || ''}»?`);
       if(confirmed){
         try {
-          await remove(ref(db, 'idoneiList'));
+          await remove(ref(db, `idonei/${key}`));
           await showAlert('Lista persone idonee cancellata.');
         } catch (e) {
           console.error("Errore resetIdoneiList:", e);
@@ -862,15 +1049,18 @@ createApp({
     }
 
     return { 
-      view, user, booking, slots, bookingsBySlot, seatsPerSlot, pageNames, texts, blocks, isAdmin, adminPass, newPageName,
-      idoneiList, idoneiTitle, fileInputIdonei, isRegistering,
-      landingLinks, donationDates, medicoEmail, footerContacts,
-      remaining, mask, register, login, resetPassword, logout, enterPage, loadBookings, confirmBook, adminLogin, exitAdmin, 
-      updatePageName, updateText, updateBlock, updateAdminPass, updateSeatsPerSlot, removeBooking, resetAll, exportExcel, 
-      importExcel, handleFileUpload, focusNext, fileInput, 
+      view, GUIDA_URL, showPwd, menuOpen, goMenu, menuAdmin, menuExitAdmin, user, booking, slots, bookingsBySlot, seatsPerSlot, pageNames, texts, blocks, isAdmin, newPageName,
+      sessions, sessionsAccessibili, MAX_DATE, chooseDate, adminOpenBookings, menuDate,
+      idoneiList, idoneiAllCount, fileInputIdonei, isRegistering,
+      mioIdoneo, miaPrenotazione, giaPrenotato, nonIdoneo, bookingsLoaded, medicoEmail, donationPlace, footerContacts,
+      showPrivacy, quickLinks, updateQuickLink,
+      isBooking, remaining, posNumber, slotPieno, slotMenuOpen, dateMenuOpen, slotScelta, toggleSlotMenu, toggleDateMenu, pickSlot, pickDate,
+      mask, register, login, resetPassword, logout, enterPage, loadBookings, confirmBook, adminLogin, exitAdmin, 
+      updatePageName, updateText, updateBlock, updateSeatsPerSlot, removeBooking, resetAll, exportExcel, 
+      importExcel, handleFileUpload, fileInput, 
       addPage, removePage,
-      importExcelIdonei, handleFileUploadIdonei, updateIdoneiTitle, resetIdoneiList, forceReloadIdonei,
-      updateLandingLink, updateDonationDate, updateMedicoEmail, updateFooterContact,
+      importExcelIdonei, handleFileUploadIdonei, resetIdoneiList, forceReloadIdonei,
+      updateMedicoEmail, updateDonationPlace, updateFooterContact,
       modal, modalConfirm, modalCancel
     };
   }

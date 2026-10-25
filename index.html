@@ -1,5 +1,5 @@
 <!--=====================================================================-->
-<!--PrenotaQui 2.1 03/02/2026 -->
+<!--PrenotaQui EVO -->
 <!--====================================================================-->
 
 <!DOCTYPE html>
@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gruppo FIDAS adsp - Prenotazioni</title>
+    <title>PrenotaQui EVO - Gruppo FIDAS adsp</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -18,192 +18,310 @@
         <div class="header-content">
             <img src="logofidas.png" alt="Logo FIDAS" class="header-logo">
             <span class="header-text">Gruppo FIDAS adsp di San Giusto Canavese</span>
+            <!-- Menu e pulsante Esci: li riempie Vue (teleport) quando l'utente è dentro -->
+            <div id="header-actions" class="header-actions"></div>
         </div>
     </header>
 
     <div id="app" class="container" :class="view" v-cloak> 
      
-        <!-- PRIMA PAGINA:  Titolo e informativa PRIVACY -->
+        <!-- Barra in alto: menu a tendina + Esci (visibili solo dopo il login) -->
+        <teleport to="#header-actions">
+            <!-- Guida all'uso: sempre visibile, anche nella pagina di login -->
+            <a v-if="GUIDA_URL" class="header-guide" :class="{ 'in-app': view !== 'landing' && view !== 'register' }"
+               :href="GUIDA_URL" target="_blank" rel="noopener">
+                <span aria-hidden="true">📖</span><span class="guide-label">Guida</span>
+            </a>
+            <div class="header-tools" v-if="view !== 'landing' && view !== 'register'" @click.stop>
+                <div class="menu-wrap">
+                    <button type="button" class="menu-btn" @click="menuOpen = !menuOpen"
+                            aria-haspopup="true" :aria-expanded="menuOpen ? 'true' : 'false'">
+                        <span class="menu-icon" aria-hidden="true">☰</span><span class="menu-label">Menu</span>
+                    </button>
+                    <div class="menu-panel" v-if="menuOpen" role="menu">
+                        <button type="button" role="menuitem" @click="goMenu('home')">🏠 Home</button>
+                        <a v-if="GUIDA_URL" role="menuitem" class="menu-link" :href="GUIDA_URL" target="_blank" rel="noopener" @click="menuOpen = false">📖 Guida all'uso del portale</a>
+
+                        <!-- Lista idonei: una voce per ogni data ancora da fare e non bloccata (l'admin le vede tutte) -->
+                        <div class="menu-sep"></div>
+                        <div class="menu-title">Lista persone idonee ed esito</div>
+                        <template v-for="s in sessions" :key="'i-' + s.key">
+                            <button v-if="!s.passata && (isAdmin || !s.blocked)" type="button" role="menuitem" @click="menuDate('idonei', s.key)">📋 {{ s.label }}</button>
+                        </template>
+                        <div v-if="!sessionsAccessibili.some(s => !s.passata)" class="menu-empty">Nessuna data disponibile</div>
+
+                        <div class="menu-sep"></div>
+                        <button v-if="!isAdmin" type="button" role="menuitem" @click="menuAdmin()">🔒 Area riservata</button>
+                        <template v-else>
+                            <div class="menu-title">Area riservata</div>
+                            <button type="button" role="menuitem" @click="goMenu('adminPage')">⚙️ Impostazioni: date, liste idonei, testi</button>
+                            <template v-for="s in sessions" :key="'p-' + s.key">
+                                <button type="button" role="menuitem" @click="menuDate('prenotazioni', s.key)">📝 Prenotazioni: {{ s.label }}</button>
+                            </template>
+                            <button type="button" role="menuitem" @click="menuExitAdmin()">🚪 Esci dall'area riservata</button>
+                        </template>
+                    </div>
+                </div>
+                <button type="button" class="header-exit" @click="logout()">Esci</button>
+            </div>
+        </teleport>
+
+        <!-- PRIMA PAGINA: solo login -->
         <div v-if="view==='landing'">
-            <h1 class="main-title">
-                PrenotaQui <span class="version-badge">V2</span>
-            </h1>
-                       
-            <h2>Web App - Prenotazioni Online</h2>
-            <p>&nbsp;&nbsp;&nbsp;</p>
-            <hr>
-            <h4>INFORMATIVA SULLA GESTIONE DEI DATI PERSONALI DEI DONATORI:</h4>
+            <div class="app-brand">
+                <img src="logo-prenotaqui-icon.png" alt="" class="app-brand-logo">
+                <span class="app-brand-wordmark">
+                    <span class="wordmark-prenota">Prenota</span><span class="wordmark-qui">Qui</span>
+                </span>
+                <span class="app-brand-version">EVO</span>
+            </div>
             
-            <p class="privacy-text">Ai sensi del Regolamento (UE) 2016/679 (GDPR), informiamo che i dati personali inseriti nel presente modulo di prenotazione sono trattati esclusivamente per finalità organizzative legate alla donazione di sangue. Il trattamento è svolto da persone autorizzate dal Presidente del Gruppo FIDAS San Giusto, Titolare del trattamento, nell'ambito delle attività associative e in conformità all'informativa sottoscritta dal donatore al momento dell'iscrizione alla FIDAS. I dati raccolti non saranno utilizzati per altri scopi e non saranno comunicati a soggetti terzi, salvo obblighi di legge. Il trattamento avviene nel rispetto delle misure di sicurezza previste dalla normativa vigente. Per ulteriori informazioni sul trattamento dei dati, è possibile consultare l'Informativa Privacy FIDAS disponibile presso la sede o richiederne copia al momento della donazione.</p>
-            
-            <h5>Prenotandoti, DICHIARI di aver preso visione di questa informativa.</h5>
-            <hr> 
-            
-            <!-- LAYOUT A DUE COLONNE -->
-            <div class="two-column-layout">
-                
-                <!-- BOX SINISTRO: DATE E MEDICO (con flexbox per mettere medico in fondo) -->
-                <div class="info-box card-calendario">
-                    <!-- Date Donazioni -->
-                    <div>
-                        <h3 style="text-align: center; margin-bottom: 20px; margin-top: 5px; color: var(--fidas-black);">Calendario Donazioni</h3>
-                        <div class="donation-dates">
-                            <div v-for="(date, index) in donationDates.filter(d => d && d.trim() !== '')" :key="index" class="date-item">
-                                📅 {{ date }}
-                            </div>
-                            <p v-if="donationDates.filter(d => d && d.trim() !== '').length === 0" 
-                               style="color: #999; font-style: italic; text-align: center;">
-                                Nessuna data disponibile al momento.
-                            </p>
+            <p class="landing-sub">Prenota la tua Donazione Online</p>
+
+            <div class="login-single">
+                <div class="login-box">   
+                    <!-- Il form permette di accedere anche con Invio e aiuta il telefono a suggerire le credenziali salvate -->
+                    <h3 class="box-title">Accedi</h3>
+                    <form @submit.prevent="login()" novalidate>
+                        <label class="field-label" for="login-email">E-mail</label>
+                        <input id="login-email" type="email" v-model="user.email" class="landing-input"
+                               placeholder="nome@esempio.it" autocomplete="email" inputmode="email"
+                               autocapitalize="none" spellcheck="false">
+
+                        <label class="field-label" for="login-password">Password</label>
+                        <div class="password-field">
+                            <input id="login-password" :type="showPwd ? 'text' : 'password'" v-model="user.password"
+                                   class="landing-input" autocomplete="current-password">
+                            <button type="button" class="pwd-toggle" @click="showPwd = !showPwd"
+                                    :aria-label="showPwd ? 'Nascondi password' : 'Mostra password'"
+                                    :aria-pressed="showPwd ? 'true' : 'false'">{{ showPwd ? 'Nascondi' : 'Mostra' }}</button>
                         </div>
-                    </div>
-                    
-                    <!-- Info Medico - MODIFICATO: Layout orizzontale E in fondo grazie a margin-top: auto -->
-                    <div v-if="medicoEmail" class="card-footer medico-info">
-                        <hr style="margin: 15px 0 25px 0; border-color: #ddd;">
-                        <div class="medico-info-row">
-                            <span class="medico-info-label">
-                                Email Medico Responsabile:
-                            </span>
-                            <span class="medico-info-value">
-                                {{ medicoEmail }}
-                            </span>
+                        <div class="forgot-password-row">
+                            <a href="#" @click.prevent="resetPassword()" class="forgot-password-link">Password dimenticata?</a>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- BOX DESTRO: LOGIN -->
-                <div class="login-box">
-                    <h3 style="text-align: center;margin-bottom: 20px; margin-top: 5px; color: var(--fidas-black);">Accedi o Registrati </h3>
-                    <input type="email" v-model="user.email" placeholder="E-mail" 
-                           @keyup.enter="login()"
-                           class="landing-input">
-                    <input type="password" v-model="user.password" placeholder="Password" 
-                           @keyup.enter="login()"
-                           class="landing-input">
-                    <div class="forgot-password-row">
-                        <a href="#" @click.prevent="resetPassword()" class="forgot-password-link">Password dimenticata?</a>
-                    </div>
-                    <button @click="login()" class="landing-login-btn">Accedi</button>
-                    
+
+                        <button type="submit" class="landing-login-btn">Accedi</button>
+                    </form>
+
                     <div class="register-prompt">
-                        <p class="register-text">Non hai ancora le credenziali di accesso?<br>Registrati con il tasto "Nuovo Utente"</p>
-                        <button @click="view='register'" class="register-btn">Nuovo Utente</button>
+                        <p class="register-text">Non hai le credenziali di accesso? Registrati.</p>
+                        <button type="button" @click="view='register'" class="register-btn">Nuovo Utente</button>
                     </div>
                 </div>
-                
+                <p class="privacy-link-row"><a href="#" @click.prevent="showPrivacy = true">📄 Informativa Privacy</a></p>
+            </div>
+        </div>
+
+        <!-- SECONDA PAGINA: HOME (dopo il login) -->
+        <div v-else-if="view==='home'">
+
+            <div class="home-light">
+                <h1 class="main-title home-title">Calendario Donazioni</h1>
+
+                <!-- Prima le informazioni, poi le date -->
+                <section class="home-row">
+                    <div>
+                        <h2>Prima di prenotarti</h2>
+                        <p class="sec-sub">ℹ️ Consulta sempre News e Sospensioni.</p>
+                    </div>
+                    <nav class="link-row">
+                        <a v-if="quickLinks.news.url" :href="quickLinks.news.url" target="_blank" rel="noopener">📰 News</a>
+                        <a v-if="quickLinks.sospensioni.url" :href="quickLinks.sospensioni.url" target="_blank" rel="noopener">⏸️ Sospensioni</a>
+                        <a v-if="quickLinks.extra.url" :href="quickLinks.extra.url" target="_blank" rel="noopener">🌐 {{ quickLinks.extra.label || 'Link' }}</a>
+                    </nav>
+                </section>
+
+                <section class="home-row">
+                    <div>
+                        <h2>Hai dubbi sulla tua idoneità?</h2>
+                        <p class="sec-sub">Scrivi al medico responsabile, indicando sempre nome e cognome, data di nascita, gruppo FIDAS e numero di telefono.</p>
+                    </div>
+                    <div v-if="medicoEmail" class="mail-wrap">
+                        <a class="mail" :href="'mailto:' + medicoEmail">✉️ Scrivi al medico</a>
+                        <span class="mail-addr">{{ medicoEmail }}</span>
+                    </div>
+                </section>
+
+                <div class="home-cards">
+                    <section class="home-card">
+                        <h2>🩸 Prelievo di sangue</h2>
+                        <p class="sec-sub">Scegli la data e clicca su "Prenota" per passare alla pagina successiva.</p>
+
+                        <ul class="date-list" v-if="sessions.length">
+                            <li v-for="s in sessions" :key="s.key" class="date-row"
+                                :class="{ open: !s.passata && !s.blocked, past: s.passata, closed: s.blocked && !s.passata }">
+                                <div class="date-info" @click="chooseDate(s.key)">
+                                    <span class="date-text">{{ s.label }}</span>
+                                    
+                                    <span v-if="s.passata" class="date-tag tag-past">Giornata conclusa</span>
+                                    <span v-else-if="s.blocked" class="date-tag tag-closed">Prenotazioni chiuse</span>
+                                    <span v-else class="date-tag tag-open">Prenotazioni aperte</span>
+                                </div>
+                                <button type="button" class="date-book-btn"
+                                        :disabled="s.passata || (s.blocked && !isAdmin)" @click="chooseDate(s.key)">{{ s.passata ? 'Conclusa' : (s.blocked && !isAdmin ? 'Chiusa' : 'Prenota') }}</button>
+                            </li>
+                        </ul>
+                        <p v-else class="sec-empty">Nessuna data disponibile al momento.</p>
+
+                        <p class="where" v-if="donationPlace">
+                            📍 <a :href="'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(donationPlace)"
+                                  target="_blank" rel="noopener">{{ donationPlace }}</a>
+                        </p>
+                    </section>
+
+                    <section class="home-card">
+                        <h2>💧 Prelievo di plasma</h2>
+                        <p class="plasma-text">{{ texts.plasma || 'Per la donazione di plasma ci appoggiamo alla sede FIDAS di Rivarolo Canavese. Periodicamente organizziamo trasferte di gruppo per raggiungere insieme la sede.' }}</p>
+                    </section>
+                </div>
             </div>
 
-            <!-- CONTATTI DEL GRUPPO - Visibili solo nella prima pagina -->
-            <div v-if="footerContacts.email || footerContacts.phone || footerContacts.whatsapp || footerContacts.address || footerContacts.website"
-                 class="landing-contacts-card">
-                <h3 style="text-align: center; margin-top: 5px;">Contatti del Gruppo</h3>
+            <!-- Contatti: footer grigio, senza box, poco visibile -->
+            <footer class="landing-footer" v-if="footerContacts.email || footerContacts.phone || footerContacts.whatsapp || footerContacts.address || footerContacts.website">
+                <h4 class="landing-footer-title">Contatti</h4>
                 <div class="landing-contacts-content">
-                    <div class="footer-item" v-if="footerContacts.email">
-                        <span class="footer-icon">📧 e-mail:</span>
-                        <span class="footer-text">{{ footerContacts.email }}</span>
-                    </div>
-                    <div class="footer-item" v-if="footerContacts.phone">
-                        <span class="footer-icon">📱Telefono:</span>
-                        <span class="footer-text">{{ footerContacts.phone }}</span>
-                    </div>
-                    <div class="footer-item" v-if="footerContacts.whatsapp">
-                        <span class="footer-icon">💬 WhatsApp:</span>
-                        <span class="footer-text">{{ footerContacts.whatsapp }}</span>
-                    </div>
-                    <div class="footer-item" v-if="footerContacts.address">
-                        <span class="footer-icon">📍 Indirizzo:</span>
-                        <span class="footer-text">{{ footerContacts.address }}</span>
-                    </div>
-                    <div class="footer-item" v-if="footerContacts.website">
-                        <span class="footer-icon">🌐 Sito web:</span>
-                        <span class="footer-text">{{ footerContacts.website }}</span>
+                    <div class="footer-item" v-if="footerContacts.email"><span class="footer-icon">📧 e-mail:</span> <span class="footer-text">{{ footerContacts.email }}</span></div>
+                    <div class="footer-item" v-if="footerContacts.phone"><span class="footer-icon">📱Telefono:</span> <span class="footer-text">{{ footerContacts.phone }}</span></div>
+                    <div class="footer-item" v-if="footerContacts.whatsapp"><span class="footer-icon">💬 WhatsApp:</span> <span class="footer-text">{{ footerContacts.whatsapp }}</span></div>
+                    <div class="footer-item" v-if="footerContacts.address"><span class="footer-icon">📍 Indirizzo:</span> <span class="footer-text">{{ footerContacts.address }}</span></div>
+                    <div class="footer-item" v-if="footerContacts.website"><span class="footer-icon">🌐 Sito web:</span> <span class="footer-text">{{ footerContacts.website }}</span></div>
+                </div>
+            </footer>
+        </div>
+
+        <!-- PAGINA REGISTRAZIONE: stessa grafica del login -->
+        <div v-else-if="view==='register'">
+            <div class="app-brand">
+                <img src="logo-prenotaqui-icon.png" alt="" class="app-brand-logo">
+                <span class="app-brand-wordmark">
+                    <span class="wordmark-prenota">Prenota</span><span class="wordmark-qui">Qui</span>
+                </span>
+                <span class="app-brand-version">EVO</span>
+            </div>
+
+            <p class="landing-sub">Crea il tuo accesso, ti serve una volta sola</p>
+
+            <div class="login-single">
+                <div class="login-box">
+                    <h3 class="box-title">Nuovo Utente</h3>
+                    <form @submit.prevent="register()" novalidate>
+                        <label class="field-label" for="reg-cognome">Cognome</label>
+                        <input id="reg-cognome" type="text" v-model="user.lastName" class="landing-input"
+                               autocomplete="family-name" autocapitalize="words" required>
+
+                        <label class="field-label" for="reg-nome">Nome</label>
+                        <input id="reg-nome" type="text" v-model="user.firstName" class="landing-input"
+                               autocomplete="given-name" autocapitalize="words" required>
+
+                        <label class="field-label" for="reg-matricola">Matricola</label>
+                        <input id="reg-matricola" type="text" v-model="user.matricola" class="landing-input"
+                               placeholder="es. 207" inputmode="numeric" autocomplete="off" required>
+
+                        <label class="field-label" for="reg-email">E-mail</label>
+                        <input id="reg-email" type="email" v-model="user.email" class="landing-input"
+                               placeholder="nome@esempio.it" autocomplete="email" inputmode="email"
+                               autocapitalize="none" spellcheck="false" required>
+
+                        <label class="field-label" for="reg-password">Password</label>
+                        <div class="password-field">
+                            <input id="reg-password" :type="showPwd ? 'text' : 'password'" v-model="user.password"
+                                   class="landing-input" autocomplete="new-password" required>
+                            <button type="button" class="pwd-toggle" @click="showPwd = !showPwd"
+                                    :aria-label="showPwd ? 'Nascondi password' : 'Mostra password'"
+                                    :aria-pressed="showPwd ? 'true' : 'false'">{{ showPwd ? 'Nascondi' : 'Mostra' }}</button>
+                        </div>
+                        <p class="field-hint">Almeno 6 caratteri.</p>
+
+                        <button type="submit" class="landing-login-btn" :disabled="isRegistering">{{ isRegistering ? 'Attendi…' : 'Registrati' }}</button>
+                        <p class="field-hint centered" v-if="isRegistering">Attendi qualche secondo, senza chiudere la pagina.</p>
+                    </form>
+
+                    <div class="register-prompt">
+                        <p class="register-text">Hai già le credenziali?</p>
+                        <button type="button" @click="view='landing'" class="register-btn">Torna al login</button>
                     </div>
                 </div>
+                <p class="privacy-link-row">Registrandoti dichiari di aver preso visione della <a href="#" @click.prevent="showPrivacy = true">Informativa Privacy</a>.</p>
             </div>
         </div>
 
-        <!-- PAGINA REGISTRAZIONE (tutti i campi) -->
-        <div v-else-if="view==='register'">
-            <h1 class="main-title">Registrazione Nuovo Utente</h1>
-            <h2>Compila tutti i campi richiesti</h2>
-            <p>&nbsp;&nbsp;&nbsp;</p>
-            
-            <p style="margin-top:20px; font-size:1.0em; color:#6B7280; text-align:left;">
-             I tuoi dati verranno salvati. Clicca su "Continua" per proseguire con la prenotazione.
-            </p>  
-             <p style="margin-bottom:20px; font-size:1.0em; color:#6B7280; text-align:left;">
-                Per i futuri accessi, potrai utilizzare direttamente l'area Login.
-            </p>  
-            
-            <div class="form-container">
-                <input type="text" v-model="user.lastName" placeholder="Cognome" required
-                  @keydown.tab.prevent="focusNext($event)"
-                  @keydown.arrow-down.prevent="focusNext($event)">
-                <input type="text" v-model="user.firstName" placeholder="Nome" required
-                  @keydown.tab.prevent="focusNext($event)"
-                  @keydown.arrow-down.prevent="focusNext($event)">
-                <input type="text" v-model="user.matricola" placeholder="Matricola" required
-                  @keydown.tab.prevent="focusNext($event)"
-                  @keydown.arrow-down.prevent="focusNext($event)">
-                <input type="email" v-model="user.email" placeholder="E-mail" required
-                  @keydown.tab.prevent="focusNext($event)"
-                  @keydown.arrow-down.prevent="focusNext($event)">
-                <input type="password" v-model="user.password" placeholder="Password" required
-                  @keydown.tab.prevent="focusNext($event)"
-                  @keydown.arrow-down.prevent="focusNext($event)"
-                  @keyup.enter="register()">
-            </div>
-              
-            <p>&nbsp;&nbsp;&nbsp;</p>
-            <button @click="view='landing'" class="btn-back">← Indietro</button>
-            <button @click="register()" class="btn-forward">Continua →</button>
-             <p style="margin-top:20px; font-size:1em; color:#6B7280; text-align:left;">
-             ℹ️ Dopo la registrazione, il caricamento dei dati richiederà circa 5-6 secondi. 
-             Ti preghiamo di attendere.
-            </p>  
-        </div>
-
-        <!-- 2 SECONDA PAGINA: Lista persone IDONEE (dopo login) -->
-        <div v-else-if="view==='idoneiPage'" :key="'idonei-' + idoneiList.length">
+        <!-- Lista persone IDONEE della data scelta (dopo la Home) -->
+        <div v-else-if="view==='idoneiPage'" :key="'idonei-' + user.pageChoice + '-' + idoneiList.length">
             <h1>Verifica la tua presenza nella lista.</h1>
-            
-             <!-- Nav principale per navigazione -->
-            <nav class="top-nav">
+            <p class="print-only">Gruppo FIDAS San Giusto Canavese – Elenco persone idonee</p>
+
+            <p v-if="!sessions.length" class="idonei-mine-line idonei-mine-no" style="margin-top:30px">
+                Al momento non ci sono date di donazione disponibili.
+            </p>
+            <template v-else>
+            <!-- data della donazione (se ce n'è più di una accessibile si può cambiare da qui) -->
+            <h2 class="main-title idonei-title">
+                <span class="session-label">Data della Donazione:</span> {{ pageNames[user.pageChoice] }}
+            </h2>
+            <div v-if="sessionsAccessibili.length > 1" class="dd" style="margin-top:10px">
+                <button type="button" class="dd-btn" @click.stop="toggleDateMenu()">
+                    <span>Cambia data</span><span aria-hidden="true">▾</span>
+                </button>
+                <ul class="dd-list" v-if="dateMenuOpen">
+                    <li v-for="s in sessionsAccessibili" :key="s.key">
+                        <button type="button" class="dd-opt" :class="{ sel: user.pageChoice === s.key }" @click.stop="pickDate(s.key)">
+                            <span class="dd-t">{{ s.label }}</span>
+                            <span class="dd-s" v-if="s.passata">Conclusa</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <p class="no-print" style="margin: 50px 0px  0px  20px ; font-size:1em; color:#4b5563; text-align:left;">
+            Esito del controllo:
+            </p>  
+            <div v-if="idoneiList.length === 0" class="idonei-mine">
+                <p class="idonei-mine-line idonei-mine-no">
+                Nessuna lista disponibile per questa data. Prova con «Aggiorna Lista» qui sotto.
+                </p>
+            </div>
+            <div v-else class="idonei-mine">
+                <p v-if="mioIdoneo" class="idonei-mine-line">
+                    <strong>{{ mioIdoneo.matricola }} <span class="nome-cap">{{ mask(mioIdoneo.cognome + ' ' + mioIdoneo.nome, mioIdoneo.matricola).toLowerCase() }}</span></strong>
+                    <span class="mine-sub"> risulta presente</span>
+                </p>
+                <p v-else class="idonei-mine-line idonei-mine-no">
+                    La tua matricola non risulta nell'elenco. Se pensi sia un errore, contatta il Gruppo.
+                </p>
+            </div>
+
+            <!-- Pulsanti di navigazione: tra la tua riga e l'elenco -->
+            <nav class="top-nav idonei-nav">
                 <div></div>
                 <div>
-                    
-                    <button @click="logout()" class="btn-back">← Indietro</button>
-                    <button @click="view='pageSelect'" class="btn-forward">Avanti →</button>
-                    <button v-if="!isAdmin" @click="adminLogin()" class="btn-admin">Area Riservata</button>
-                    <button class="exit" @click="logout()">Esci</button>
+                    <button @click="view='home'" class="btn-back">← Indietro</button>
+                    <button @click="enterPage()" class="btn-forward" :disabled="nonIdoneo">Avanti →</button>
                 </div>
             </nav>
-
-            <!-- separata per il pulsante Aggiorna -->
-            <h2 class="main-title idonei-title">
-            <span class="session-label">Data della donazione:</span> {{ idoneiTitle }}
-            </h2>
-            <p>&nbsp;&nbsp;&nbsp;</p>
-            <button @click="forceReloadIdonei()" class="btn-refresh">🔄 Aggiorna Lista</button>
-
-             <p style="margin-top:20px; font-size:1em; color:#6B7280; text-align:left;">
-                ℹ️ La lista viene caricata automaticamente.
-                Se non la visualizzi subito, clicca su "🔄 Aggiorna lista" per ricaricarla.
-            </p>     
-             <p style="margin-top:40px; font-size:1em; color:#6B7280; text-align:left;">
+            <p class="no-print" style="margin-top:30px; margin-bottom:10px; font-size:1em; color:#6B7280; text-align:left;">
              ℹ️ Elenco basato sui dati ufficiali del sistema Pangea ADSP, aggiornato periodicamente dal Gruppo.
-            </p>  
-             
-             
-            <p v-if="idoneiList.length === 0" style="color:#6B7280; font-style:italic; text-align:center; margin:30px 0;">
-                Nessuna lista disponibile al momento.
-            </p>
+            </p> 
+             <p class="no-print" style="margin-top:20px; margin-bottom:30px; font-size:1em; color:#6B7280; text-align:left;">
+                ℹ️ La lista viene caricata automaticamente.
+                Se non la visualizzi subito, clicca su
+                «<svg class="inline-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Aggiorna lista»
+                per ricaricarla.
+            </p>    
             
-            
-            
+            <button @click="forceReloadIdonei()" class="btn-refresh no-print">
+                <svg class="btn-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                Aggiorna lista
+            </button>
+            <p class="no-print">&nbsp;&nbsp;&nbsp;</p>
 
-            <div v-else class="table-scroll">
+            <!-- Elenco completo a tendina -->
+            <details v-if="idoneiList.length > 0" class="idonei-details">
+                <summary>
+                    <span class="when-closed">Mostra l'elenco completo ({{ idoneiList.length }} persone)</span>
+                    <span class="when-open">Nascondi l'elenco</span>
+                </summary>
+
+            <div class="table-scroll">
     <div class="idonei-columns">
         <table v-for="colIndex in 2" :key="colIndex" class="bookings-table idonei-table">
             <thead>
@@ -224,200 +342,135 @@
         </table>
     </div>
 </div>
-
-            <!--3 TERZA PAGINA:  Seleziona una pagina -->
+            </details>
+            </template>
         </div>
 
-        <div v-else-if="view==='pageSelect'">
-            <h1 class="main-title">Scegli la giornata della donazione</h1>
+        <!-- AREA ADMIN: tutto in un'unica pagina -->
+        <div v-else-if="view==='adminPage' && isAdmin" class="admin-page">
+            <h1 class="main-title">Area Riservata</h1>
             <nav class="top-nav">
                 <div></div>
                 <div>
-                    <button v-if="!isAdmin" @click="adminLogin()" class="btn-admin">Area Riservata</button>
-                    <button class="exit" @click="logout()">Esci</button>
+                    <button @click="view='home'" class="btn-back">← Home</button>
+                    <button class="admin-exit" @click="menuExitAdmin()">Esci Area Riservata</button>
                 </div>
-                
             </nav>
-            <label class="page-select-label">Seleziona la giornata alla quale vuoi prenotarti:
-                <select v-model="user.pageChoice">
-                    <option v-for="(name, key) in pageNames" :key="key" :value="key">
-                        {{ name }}
-                    </option>
-                </select>
-            </label>
-            
-            <p style="margin-top:20px; font-size:1em; color:#6B7280; text-align:left;">
-                ℹ️ Puoi scegliere una sola giornata di donazione.
-            </p>  
-            <p>&nbsp;&nbsp;&nbsp;</p>   
-            <button @click="view='idoneiPage'" class="btn-back">← Indietro</button>
-            <button @click="enterPage()" class="btn-forward">Avanti →</button>
-            <h3></h3>
-            <p></p>
 
-            <!-- TERZA PAGINA:  Area Riservata per Modificare  -->
-            <div v-if="isAdmin" class="admin-settings">
-                <p>&nbsp;&nbsp;&nbsp;</p>
-                <hr>
-                <hr>
-                <h2 style="margin-top:25px; margin-bottom:20px;  text-align:center; color:var(--fidas-blue);">Gestione Pagine </h2>
-                <hr>
-                <hr>
-                <p>&nbsp;&nbsp;&nbsp;</p>
-                <div class="admin-section-header">
-                    <h3>Aggiungi Nuova Pagina</h3>
-                    <button class="admin-exit" @click="exitAdmin()">Esci Area Riservata</button>
-                </div>
-                
-                <!-- <label>Pagina delle prenotazioni :</label> -->
-                <input type="text" v-model="newPageName" placeholder="Nome nuova pagina (es. Gennaio)">
-                <button @click="addPage()">Aggiungi Pagina</button>
-                <p>&nbsp;&nbsp;&nbsp;</p>
-                <hr>
-                <hr>
-                <h3>Rinomina Pagine</h3>
-                <div v-for="(name, key, index) in pageNames" :key="key" class="page-management-row">
-                    <label>Pagina {{ index + 1 }}:</label>
-                    <input class="page-name-input" :value="name" @change="e => updatePageName(key, e.target.value)">
-                    <button v-if="Object.keys(pageNames).length > 1" @click="removePage(key)" class="reset">Rimuovi</button>
-                </div>               
-                <p>&nbsp;&nbsp;&nbsp;</p>
-                <hr>
-                <hr>
+            <!-- DATE DELLE DONAZIONI -->
+            <details class="admin-block" open>
+                <summary>🩸 Date delle donazioni <span class="admin-count">{{ sessions.length }} / {{ MAX_DATE }}</span></summary>
+                <p class="admin-note">Scrivi giorno, mese e anno (es. «Sabato 17 Gennaio 2027»): le date passate si segnano da sole come «Conclusa» e la prima futura diventa «Prossima data».</p>
 
-                <h3>Blocca Prenotazioni</h3>
-                <p style="font-size:0.9em; color:#ff6600; margin-bottom:10px; font-weight: bold;">
-                    ⚠️ Il blocco vale solo per gli utenti normali. L'admin può sempre operare.
-                </p>
-                <div v-for="(name, key) in pageNames" :key="key">
-                    <label><input type="checkbox" v-model="blocks[key]" @change="updateBlock(key)"> Blocca: {{ name }}</label>
-                </div>
-                <p>&nbsp;&nbsp;&nbsp;</p>
-                <hr>
-                <hr>
-
-                <h3>Modifica Testi</h3>
-                <label>I Pagina:</label>
-                <input class="text-input" v-model="texts.landing" @change="updateText('landing')">
-                <label>Pagina della selezione pagine:</label>
-                <input class="text-input" v-model="texts.pageSelect" @change="updateText('pageSelect')">
-                <p>&nbsp;&nbsp;&nbsp;</p>
-                <hr>
-                <hr>
-                
-                <h3>Numero Posti per Fascia Oraria</h3>
-                <label>Posti disponibili per ogni fascia (escluse Riserve):</label>
-                <input type="number" v-model.number="seatsPerSlot" @change="updateSeatsPerSlot()" 
-                       min="1" max="20" placeholder="Numero posti (es. 6)">
-                <small style="display:block; margin-top:5px; color:#666;">Valore attuale: {{ seatsPerSlot }} posti per fascia</small>
-                <p>&nbsp;&nbsp;&nbsp;</p>
-                <hr>
-                <hr>
-
-                <h3>Modifica password admin</h3>
-                <input type="password" v-model="adminPass" @change="updateAdminPass()" placeholder="Nuova password admin">
-                
-                <p>&nbsp;&nbsp;&nbsp;</p>
-                <hr>
-                <hr>
-
-                <h3>Gestione Lista Persone Idonee</h3>
-                <label>Titolo Pagina Idonei:</label>
-                <input class="text-input" v-model="idoneiTitle" @blur="updateIdoneiTitle()">
-                
-                <div style="margin-top:15px;">
-                    <button @click="importExcelIdonei()">Carica Lista Excel</button>
-                    <button class="reset" @click="resetIdoneiList()">Cancella Lista</button>
-                    <input ref="fileInputIdonei" type="file" accept=".xlsx" @change="handleFileUploadIdonei" style="display:none">
-                </div>
-
-                <p style="margin-top:10px; font-size:0.9em; color:#676565;">
-                    Il file Excel deve contenere le colonne: <strong>Matricola</strong> e <strong>Nome</strong> (formato: "COGNOME NOME")
-                </p>
-
-                <div v-if="idoneiList.length > 0" style="background:#f0f0f0; padding:15px; border-radius:8px; margin-top:15px;">
-                    <h4>Lista Caricata ({{ idoneiList.length }} persone)</h4>
-                    <div v-for="(persona, idx) in idoneiList.slice(0, 5)" :key="idx" style="padding:8px 0; border-bottom:1px solid #ddd;">
-                        <strong>{{ persona.matricola }}</strong> - {{ persona.cognome }} {{ persona.nome }}
-                    </div>
-                    <p v-if="idoneiList.length > 5" style="color:#6B7280; font-style:italic; margin-top:10px;">
-                        ... e altre {{ idoneiList.length - 5 }} persone
+                <div v-for="s in sessions" :key="s.key" class="admin-date">
+                    <input class="text-input" :value="s.label" @change="e => updatePageName(s.key, e.target.value)" aria-label="Data della donazione">
+                    <label class="admin-check"><input type="checkbox" v-model="blocks[s.key]" @change="updateBlock(s.key)"> Prenotazioni bloccate (per gli utenti)</label>
+                    <p class="admin-idonei-line">
+                        Lista idonei: <strong>{{ (idoneiAllCount(s.key)) }}</strong> persone
                     </p>
+                    <div class="admin-buttons">
+                        <button type="button" @click="importExcelIdonei(s.key)">Carica lista idonei (Excel)</button>
+                        <button type="button" class="reset" v-if="idoneiAllCount(s.key)" @click="resetIdoneiList(s.key)">Cancella lista</button>
+                        <button type="button" @click="adminOpenBookings(s.key)">Gestisci prenotazioni</button>
+                        <button type="button" class="reset" @click="removePage(s.key)">Rimuovi data</button>
+                    </div>
                 </div>
-                
-                <p>&nbsp;&nbsp;&nbsp;</p>
-                <hr>
-                <hr>
-                
-                <h3>Gestione Landing Page</h3>
-                
-                <!-- Date Donazioni -->
-                <h4 style="margin-top:25px; color: var(--fidas-blue);">Prossime Donazioni (max 8)</h4>
-                <p style="font-size:0.9em; color:#6B7280; margin-bottom:15px;">
-                    Le date vengono mostrate solo se non vuote. Lascia vuoto per non visualizzare.
-                </p>
-                <div v-for="(date, index) in donationDates" :key="index" style="margin-bottom:10px;">
-                    <label style="display:block; margin-bottom:5px;">Data {{ index + 1 }}:</label>
-                    <input type="text" v-model="donationDates[index]" @blur="updateDonationDate(index)" 
-                           placeholder="es: 17 Gennaio 2026" class="text-input">
+                <p v-if="!sessions.length" class="admin-note">Nessuna data inserita.</p>
+
+                <input ref="fileInputIdonei" type="file" accept=".xlsx" @change="handleFileUploadIdonei" style="display:none">
+                <p class="admin-note">Il file Excel degli idonei deve avere le colonne <strong>Matricola</strong> e <strong>Nome</strong> (formato «COGNOME NOME»).</p>
+
+                <div class="admin-add">
+                    <input class="text-input" type="text" v-model="newPageName" placeholder="Nuova data (es. Sabato 17 Gennaio 2027)"
+                           :disabled="sessions.length >= MAX_DATE" @keyup.enter="addPage()">
+                    <button type="button" @click="addPage()" :disabled="sessions.length >= MAX_DATE">Aggiungi data</button>
                 </div>
-                
-                <!-- Email Medico -->
-                <h4 style="margin-top:25px; color: var(--fidas-blue);">Medico Responsabile</h4>
-                <label style="display:block; margin-bottom:5px;">Email:</label>
-                <input type="email" v-model="medicoEmail" @blur="updateMedicoEmail()" 
-                       placeholder="medico@fidas.it" class="text-input">
-                
-                <p>&nbsp;&nbsp;&nbsp;</p>
-                <hr>
-                <hr>
-                
-                <h3>Gestione Footer - Informazioni Contatto</h3>
-                <p style="font-size:0.9em; color:#6B7280; margin-bottom:15px;">
-                    Le informazioni verranno mostrate come box "Contatti del Gruppo" solo nella prima pagina (login). Lascia vuoto per nascondere.
-                </p>
-                
-                <h4 style="margin-top:20px; color: var(--fidas-blue);">Contatti Footer</h4>
-                
-                <label style="display:block; margin-bottom:5px; margin-top:15px;">Email Gruppo:</label>
-                <input type="email" v-model="footerContacts.email" @blur="updateFooterContact('email')" 
-                       placeholder="info@fidas-sangiusto.it" class="text-input">
-                
-                <label style="display:block; margin-bottom:5px; margin-top:15px;">Telefono:</label>
-                <input type="text" v-model="footerContacts.phone" @blur="updateFooterContact('phone')" 
-                       placeholder="333 78 36 256" class="text-input">
-                
-                <label style="display:block; margin-bottom:5px; margin-top:15px;">WhatsApp:</label>
-                <input type="text" v-model="footerContacts.whatsapp" @blur="updateFooterContact('whatsapp')" 
-                       placeholder="333 78 36 256" class="text-input">
-                
-                <label style="display:block; margin-bottom:5px; margin-top:15px;">Indirizzo:</label>
-                <input type="text" v-model="footerContacts.address" @blur="updateFooterContact('address')" 
-                       placeholder="Via Roma 1, San Giusto Canavese (TO)" class="text-input">
-                
-                <label style="display:block; margin-bottom:5px; margin-top:15px;">Sito Web:</label>
-                <input type="text" v-model="footerContacts.website" @blur="updateFooterContact('website')" 
-                       placeholder="www.fidas-sangiusto.it" class="text-input">
-                       
-            </div>
+            </details>
+
+            <details class="admin-block">
+                <summary>👩‍⚕️ Medico e luogo</summary>
+                <label>E-mail del medico responsabile:</label>
+                <input type="email" v-model="medicoEmail" @blur="updateMedicoEmail()" placeholder="medico@fidas.it" class="text-input">
+                <label>Dove si effettuano le donazioni:</label>
+                <input type="text" v-model="donationPlace" @blur="updateDonationPlace()" placeholder="es: Sede del Gruppo, Via Roma 1, San Giusto Canavese" class="text-input">
+            </details>
+
+            <details class="admin-block">
+                <summary>🔗 Pulsanti «Prima di prenotarti»</summary>
+                <label>URL News:</label>
+                <input class="text-input" v-model="quickLinks.news.url" @blur="updateQuickLink('news')">
+                <label>URL Sospensioni:</label>
+                <input class="text-input" v-model="quickLinks.sospensioni.url" @blur="updateQuickLink('sospensioni')">
+                <label>Testo del terzo pulsante:</label>
+                <input class="text-input" v-model="quickLinks.extra.label" @blur="updateQuickLink('extra')" placeholder="es: Modulo Idoneità">
+                <label>URL del terzo pulsante:</label>
+                <input class="text-input" v-model="quickLinks.extra.url" @blur="updateQuickLink('extra')">
+            </details>
+
+            <details class="admin-block">
+                <summary>💧 Plasma e testi</summary>
+                <label>Testo plasma mostrato nella Home (vuoto = testo predefinito):</label>
+                <textarea class="text-input" v-model="texts.plasma" @change="updateText('plasma')" rows="4"></textarea>
+                <label>Testo Informativa Privacy:</label>
+                <textarea class="text-input" v-model="texts.privacy" @change="updateText('privacy')" rows="6"></textarea>
+            </details>
+
+            <details class="admin-block">
+                <summary>📇 Contatti in fondo alla Home</summary>
+                <p class="admin-note">Lascia vuoto un campo per nasconderlo.</p>
+                <label>E-mail del Gruppo:</label>
+                <input type="email" v-model="footerContacts.email" @blur="updateFooterContact('email')" placeholder="info@fidas-sangiusto.it" class="text-input">
+                <label>Telefono:</label>
+                <input type="text" v-model="footerContacts.phone" @blur="updateFooterContact('phone')" placeholder="333 78 36 256" class="text-input">
+                <label>WhatsApp:</label>
+                <input type="text" v-model="footerContacts.whatsapp" @blur="updateFooterContact('whatsapp')" placeholder="333 78 36 256" class="text-input">
+                <label>Indirizzo:</label>
+                <input type="text" v-model="footerContacts.address" @blur="updateFooterContact('address')" placeholder="Via Roma 1, San Giusto Canavese (TO)" class="text-input">
+                <label>Sito web:</label>
+                <input type="text" v-model="footerContacts.website" @blur="updateFooterContact('website')" placeholder="www.fidas-sangiusto.it" class="text-input">
+            </details>
+
+            <details class="admin-block">
+                <summary>⚙️ Posti per fascia</summary>
+                <label>Posti per ogni fascia oraria (escluse le Riserve):</label>
+                <input type="number" v-model.number="seatsPerSlot" @change="updateSeatsPerSlot()" min="1" max="20" class="text-input">
+            </details>
         </div>
 
         <!--4 QUARTA PAGINA:  Prenotazione -->
         <div v-else-if="Object.keys(pageNames).includes(view)"> 
-            <h1 class="main-title">Prenota la tua donazione</h1>
-            <nav class="top-nav">
-                <div></div>
-                <div>
-                    <button @click="view='pageSelect'" class="btn-back">← Indietro</button> 
-                    <button v-if="!isAdmin" @click="adminLogin()" class="btn-admin">Area Riservata</button>
-                    <button class="exit" @click="logout()">Esci</button>
-                </div>
-            </nav>
+            <h1 class="main-title">Prenota la tua Donazione</h1>
+            <p class="print-only">Gruppo FIDAS San Giusto Canavese – Elenco prenotazioni</p>
             <h2 class="session-title">
                 <span class="session-label">Data della donazione:</span>
-                <span contenteditable="true" @blur="updatePageName(view, $event.target.innerText)">{{ pageNames[view] }}</span>
+                <span :contenteditable="isAdmin" @blur="isAdmin && updatePageName(view, $event.target.innerText)">{{ pageNames[view] }}</span>
             </h2>
             
+            <!-- La tua prenotazione: letta dal database in questo momento -->
+            <template v-if="!isAdmin">
+                <p class="booking-check-label">La tua prenotazione:</p>
+                <div class="idonei-mine">
+                    <p v-if="!bookingsLoaded" class="idonei-mine-line my-booking-wait">Controllo in corso…</p>
+                    <template v-else-if="miaPrenotazione">
+                        <div class="idonei-mine-line booking-mine">
+                            <div class="bm-text">
+                                <p class="bm-row1">
+                                    <strong>{{ user.matricola }} <span class="nome-cap">{{ (user.lastName + ' ' + user.firstName).toLowerCase() }}</span></strong>
+                                    <span class="mine-sub">risulta prenotato</span>
+                                </p>
+                                <p class="bm-row2">
+                                    <strong>Pos. {{ miaPrenotazione.pos }}</strong>
+                                    <span class="bm-sep" aria-hidden="true"></span>
+                                    <span class="mine-sub">{{ miaPrenotazione.fascia }}</span>
+                                </p>
+                            </div>
+                        </div>
+                        <p class="booking-note">Se vuoi spostare o annullare la prenotazione contatta il Gruppo.</p>
+                    </template>
+                    <p v-else class="idonei-mine-line my-booking-none">Non risulti ancora prenotato per questa data.</p>
+                </div>
+            </template>
+
             <div class="booking-section">
                 <button v-if="isAdmin" class="admin-exit" @click="exitAdmin()">Esci Area Riservata</button>
                 
@@ -432,16 +485,29 @@
                 <p style="margin-top:20px; font-size:1em; color:#6B7280; text-align:left;">
                 ℹ️ Seleziona l'orario in cui desideri effettuare la donazione.
                 </p>  
-                <select v-model.number="booking.slot" class="slot-select">
-                    <option :value="null">Fasce orarie</option>
-                    <option v-for="slot in slots" :key="slot.id" :value="slot.id" :disabled="slot.id!==8 && remaining(slot)<=0">
-                        {{ slot.id===8 ? 'Riserve' : slot.label }} – {{ slot.id!==8 && remaining(slot)<=0 ? 'Completo' : (remaining(slot) + ' ' + (remaining(slot)===1 ? 'posto disponibile' : 'posti disponibili')) }}
-                    </option>
-                </select>
+                <div class="dd">
+                    <button type="button" class="dd-btn" :disabled="giaPrenotato" @click.stop="toggleSlotMenu()">
+                        <span>{{ slotScelta ? (slotScelta.id===8 ? 'Riserve' : slotScelta.label) : 'Fasce orarie' }}</span>
+                        <span aria-hidden="true">▾</span>
+                    </button>
+                    <ul class="dd-list" v-if="slotMenuOpen">
+                        <li v-for="slot in slots" :key="slot.id">
+                            <button type="button" class="dd-opt" :class="{ sel: booking.slot === slot.id }"
+                                    :disabled="slotPieno(slot)" @click.stop="pickSlot(slot)">
+                                <span class="dd-t">{{ slot.id===8 ? 'Riserve' : slot.label }}</span>
+                                <span class="dd-s">{{ remaining(slot)<=0 ? 'Completo' : (remaining(slot) + (remaining(slot)===1 ? ' posto' : ' posti')) }}</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
                 
                 
-                <p>&nbsp;&nbsp;</p>
-                <button @click="confirmBook()">Prenota</button>
+            </div>
+
+            <!-- Indietro + Prenota, a destra, stessa altezza e larghezza -->
+            <div class="booking-actions no-print">
+                <button type="button" class="btn-back" @click="view = isAdmin ? 'adminPage' : 'idoneiPage'">← Indietro</button>
+                <button type="button" class="btn-book" @click="confirmBook()" :disabled="isBooking || giaPrenotato">Prenota</button>
             </div>
             <p>&nbsp;&nbsp;&nbsp;</p>
              
@@ -452,7 +518,36 @@
                 <input type="file" ref="fileInput" @change="handleFileUpload" style="display:none" />
             </div>
 
-            <div class="table-scroll">
+            <!-- Telefono: una scheda compatta per ogni fascia -->
+            <!-- Elenco prenotazioni a tendina (come nella pagina idonei) -->
+            <details class="idonei-details">
+                <summary>
+                    <span class="when-closed">Mostra l'elenco delle prenotazioni</span>
+                    <span class="when-open">Nascondi l'elenco</span>
+                </summary>
+
+            <div class="slot-cards">
+                <div v-for="slot in slots" :key="slot.id" class="slot-card">
+                    <div class="slot-card-head">
+                        <div class="slot-card-time">
+                            <template v-if="slot.id===8">Riserve</template>
+                            <template v-else><span class="slot-card-n">{{ slot.label.split(': ')[0] }}</span> {{ slot.label.split(': ')[1] }}</template>
+                        </div>
+                        <span class="seats-badge" :class="{
+                            'seats-many': remaining(slot) > 3,
+                            'seats-few': remaining(slot) > 0 && remaining(slot) <= 3,
+                            'seats-none': remaining(slot) <= 0
+                        }">{{ remaining(slot)<=0 ? 'Completo' : (remaining(slot) + (remaining(slot)===1 ? ' libero' : ' liberi')) }}</span>
+                    </div>
+                    <div v-for="(b, idx) of bookingsBySlot[slot.id]" :key="b.key" class="prenotazione-nome slot-card-person"
+                         :class="{ 'user-booking': user.matricola && String(b.matricola) === String(user.matricola), 'altro-nome': !isAdmin && !(user.matricola && String(b.matricola) === String(user.matricola)) }">
+                        <span><span class="pos-num">{{ posNumber(slot, idx) }}</span> {{ b.matricola }} {{ isAdmin ? b.name : mask(b.name, b.matricola) }}</span>
+                        <button v-if="isAdmin" @click="removeBooking(b.key)">Cancella</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-scroll bookings-desktop">
                 <table class="bookings-table prenotazioni-table">
                     <thead>
                         <tr><th>Ora</th><th>N.</th><th>Persone</th><th>Posti</th></tr>
@@ -466,7 +561,7 @@
                             <td><div class="seat-number" v-for="j in seatsPerSlot" :key="j">{{ slot.id*seatsPerSlot + j }}</div></td>
                             <td>
                                 <div v-for="b of bookingsBySlot[slot.id]" :key="b.key" class="prenotazione-nome"
-                                     :class="{ 'user-booking': user.matricola && String(b.matricola) === String(user.matricola) }">
+                                     :class="{ 'user-booking': user.matricola && String(b.matricola) === String(user.matricola), 'altro-nome': !isAdmin && !(user.matricola && String(b.matricola) === String(user.matricola)) }">
                                     <span>{{ b.matricola }} {{ isAdmin ? b.name : mask(b.name, b.matricola) }}</span>
                                     <button v-if="isAdmin" @click="removeBooking(b.key)">Cancella</button>
                                 </div>
@@ -475,15 +570,16 @@
                                 <span class="seats-badge" :class="{
                                     'seats-many': remaining(slot) > 3,
                                     'seats-few': remaining(slot) > 0 && remaining(slot) <= 3,
-                                    'seats-none': remaining(slot) === 0 && slot.id !== 8
+                                    'seats-none': remaining(slot) <= 0
                                 }">
-                                    {{ slot.id!==8 && remaining(slot)<=0 ? 'Completo' : (remaining(slot) + ' ' + (remaining(slot)===1 ? 'posto disponibile' : 'posti disponibili')) }}
+                                    {{ remaining(slot)<=0 ? 'Completo' : (remaining(slot) + ' ' + (remaining(slot)===1 ? 'posto disponibile' : 'posti disponibili')) }}
                                 </span>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+            </details>
         </div>
 
         <!-- MODALE PERSONALIZZATO -->
@@ -495,6 +591,17 @@
                 <div class="modal-buttons">
                     <button v-if="modal.type !== 'alert'" @click="modalCancel" class="modal-btn-cancel">Annulla</button>
                     <button @click="modalConfirm" class="modal-btn-ok">{{ modal.type === 'alert' ? 'OK' : 'Conferma' }}</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODALE Privacy (deve stare DENTRO #app, altrimenti Vue non la gestisce) -->
+        <div v-if="showPrivacy" class="modal-overlay" @click.self="showPrivacy = false">
+            <div class="modal-box" style="max-width:700px; max-height:80vh; overflow-y:auto; text-align:left;">
+                <h3 class="modal-title">Informativa Privacy</h3>
+                <p class="modal-message">{{ texts.privacy }}</p>
+                <div class="modal-buttons">
+                    <button @click="showPrivacy = false" class="modal-btn-ok">Chiudi</button>
                 </div>
             </div>
         </div>
