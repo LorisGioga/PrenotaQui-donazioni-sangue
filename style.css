@@ -2125,10 +2125,10 @@ details.idonei-details[open] .when-closed {
 }
 
 .admin-date {
-    margin: 12px 0;
-    padding: 14px;
+    margin: 42px 0;
+    padding: 16px;
     background: #f7f9fc;
-    border: 1px solid #e3e8ef;
+    border: 3px solid var(--fidas-light-blue);
     border-radius: 12px;
 }
 
@@ -2180,6 +2180,17 @@ details.idonei-details[open] .when-closed {
 
 .admin-add button {
     margin: 0;
+}
+
+/* Area riservata: campi dove si scrive = giallo chiaro */
+.admin-block .text-input {
+    background: #fbf5cc;
+    border: 3px solid #4a90e2;
+}
+
+.admin-block .text-input:focus {
+    background: #fff3a0;
+    border-color: var(--fidas-blue);
 }
 
 /* Spaziatura Home EVO: titolo -> prima riga ravvicinati, riga medico -> riquadri staccati */

@@ -360,7 +360,7 @@
             <!-- DATE DELLE DONAZIONI -->
             <details class="admin-block" open>
                 <summary>🩸 Date delle donazioni <span class="admin-count">{{ sessions.length }} / {{ MAX_DATE }}</span></summary>
-                <p class="admin-note">Scrivi giorno, mese e anno (es. «Sabato 17 Gennaio 2027»): le date passate si segnano da sole come «Conclusa» e la prima futura diventa «Prossima data».</p>
+                <p class="admin-note">Scrivi giorno, mese e anno (es. «Sabato 17 Gennaio 2027»): le date passate si segnano da sole come «Conclusa».</p>
 
                 <div v-for="s in sessions" :key="s.key" class="admin-date">
                     <input class="text-input" :value="s.label" @change="e => updatePageName(s.key, e.target.value)" aria-label="Data della donazione">
