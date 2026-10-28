@@ -26,7 +26,7 @@ Vue.js 3, Firebase (Authentication + Realtime Database), SheetJS (Excel).
 4. Il dominio del sito deve essere tra i domini autorizzati di Firebase Authentication.
 
 ## Uso
-Guida per i donatori: https://sites.google.com/view/fidas-gruppo-san-giusto-can/prenotazioni/guida-per-lapp-prenotaqui
+Guida per i donatori: https://sites.google.com/view/fidas-gruppo-san-giusto-can/prenotazioni/guida-per-prenotaqui
 
 ## Versioni
 - v2: versione precedente (tag `backup-v2-prima-di-evo`)
