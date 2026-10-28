@@ -48,7 +48,7 @@ createApp({
     
     // Link alla guida all'uso dell'app (pagina del sito del Gruppo).
     // Incolla qui l'indirizzo completo: finché è vuoto, i pulsanti Guida non compaiono.
-    const GUIDA_URL = 'https://sites.google.com/view/fidas-gruppo-san-giusto-can/prenotazioni/guida-per-lapp-prenotaqui';
+    const GUIDA_URL = 'https://sites.google.com/view/fidas-gruppo-san-giusto-can/prenotazioni/guida-per-prenotaqui';
 
     const view = vueRef('landing');
     // Mostra/nascondi password nel login
