@@ -156,6 +156,7 @@ createApp({
     const quickLinks = reactive({
       news: { url: '', desc: '' },
       sospensioni: { url: '', desc: '' },
+      referti: { url: '', desc: '' },
       extra: { url: '', desc: '', label: '' }
     });
     
@@ -252,6 +253,7 @@ createApp({
         const data = s.val() || {};
         quickLinks.news = data.news || { url: '', desc: '' };
         quickLinks.sospensioni = data.sospensioni || { url: '', desc: '' };
+        quickLinks.referti = data.referti || { url: '', desc: '' };
         quickLinks.extra = data.extra || { url: '', desc: '', label: '' };
       });
     }

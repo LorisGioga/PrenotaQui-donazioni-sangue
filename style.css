@@ -3008,3 +3008,31 @@ button.btn-book:disabled:hover {
 .date-list .date-row.past .date-text {
     font-weight: 600;
 }
+
+/* ===== Home: News, Sospensioni, Scrivi al medico, Referti Online: tutti della stessa larghezza ===== */
+:root {
+    --home-btn-w: 190px;
+}
+
+.link-row {
+    grid-auto-columns: var(--home-btn-w);
+}
+
+.home-row .mail-wrap .mail {
+    display: block;
+    width: var(--home-btn-w);
+    box-sizing: border-box;
+    text-align: center;
+}
+
+@media screen and (max-width: 700px) {
+    :root {
+        --home-btn-w: 180px;
+    }
+
+    .link-row {
+        grid-auto-flow: row;
+        grid-auto-columns: var(--home-btn-w);
+        width: auto;
+    }
+}

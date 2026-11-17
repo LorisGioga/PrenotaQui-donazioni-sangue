@@ -39,8 +39,11 @@
                         <span class="menu-icon" aria-hidden="true">☰</span><span class="menu-label">Menu</span>
                     </button>
                     <div class="menu-panel" v-if="menuOpen" role="menu">
-                        <button type="button" role="menuitem" @click="goMenu('home')">🏠 Home</button>
+                        <button type="button" role="menuitem" @click="goMenu('home')">🏠 Home Prenotazioni</button>
+                        <a v-if="quickLinks.extra.url" role="menuitem" class="menu-link" :href="quickLinks.extra.url" target="_blank" rel="noopener" @click="menuOpen = false">🌐 {{ quickLinks.extra.label || 'Nostro sito web' }}</a>
+                        <a v-if="quickLinks.referti.url" role="menuitem" class="menu-link" :href="quickLinks.referti.url" target="_blank" rel="noopener" @click="menuOpen = false">📄 Referti Online</a>
                         <a v-if="GUIDA_URL" role="menuitem" class="menu-link" :href="GUIDA_URL" target="_blank" rel="noopener" @click="menuOpen = false">📖 Guida all'uso del portale</a>
+                        <button type="button" role="menuitem" @click="menuOpen = false; showPrivacy = true">🔒 Informativa Privacy</button>
 
                         <!-- Lista idonei: una voce per ogni data ancora da fare e non bloccata (l'admin le vede tutte) -->
                         <div class="menu-sep"></div>
@@ -127,7 +130,6 @@
                     <nav class="link-row">
                         <a v-if="quickLinks.news.url" :href="quickLinks.news.url" target="_blank" rel="noopener">📰 News</a>
                         <a v-if="quickLinks.sospensioni.url" :href="quickLinks.sospensioni.url" target="_blank" rel="noopener">⏸️ Sospensioni</a>
-                        <a v-if="quickLinks.extra.url" :href="quickLinks.extra.url" target="_blank" rel="noopener">🌐 {{ quickLinks.extra.label || 'Link' }}</a>
                     </nav>
                 </section>
 
@@ -174,6 +176,17 @@
                         <p class="plasma-text">{{ texts.plasma || 'Per la donazione di plasma ci appoggiamo alla sede FIDAS di Rivarolo Canavese. Periodicamente organizziamo trasferte di gruppo per raggiungere insieme la sede.' }}</p>
                     </section>
                 </div>
+
+                <!-- Dopo la donazione: stessa struttura del blocco "dubbi sulla idoneità" -->
+                <section class="home-row" v-if="quickLinks.referti.url">
+                    <div>
+                        <h2>Hai già donato? Scarica i tuoi referti</h2>
+                        <p class="sec-sub">I referti sono consultabili online dopo circa 20-30 giorni dalla donazione (o prelievo) e restano disponibili per un massimo di 45 giorni dalla data di pubblicazione.</p>
+                    </div>
+                    <div class="mail-wrap">
+                        <a class="mail" :href="quickLinks.referti.url" target="_blank" rel="noopener">📄 Referti Online</a>
+                    </div>
+                </section>
             </div>
 
             <!-- Contatti: footer grigio, senza box, poco visibile -->
@@ -396,14 +409,16 @@
             </details>
 
             <details class="admin-block">
-                <summary>🔗 Pulsanti «Prima di prenotarti»</summary>
-                <label>URL News:</label>
+                <summary>🔗 Pulsanti e link della Home</summary>
+                <label>URL News («Prima di prenotarti»):</label>
                 <input class="text-input" v-model="quickLinks.news.url" @blur="updateQuickLink('news')">
-                <label>URL Sospensioni:</label>
+                <label>URL Sospensioni («Prima di prenotarti»):</label>
                 <input class="text-input" v-model="quickLinks.sospensioni.url" @blur="updateQuickLink('sospensioni')">
-                <label>Testo del terzo pulsante:</label>
-                <input class="text-input" v-model="quickLinks.extra.label" @blur="updateQuickLink('extra')" placeholder="es: Modulo Idoneità">
-                <label>URL del terzo pulsante:</label>
+                <label>URL Referti Online («Hai già donato?»):</label>
+                <input class="text-input" v-model="quickLinks.referti.url" @blur="updateQuickLink('referti')" placeholder="https://...">
+                <label>Testo del pulsante sito (vuoto = «Nostro sito»):</label>
+                <input class="text-input" v-model="quickLinks.extra.label" @blur="updateQuickLink('extra')" placeholder="Nostro sito">
+                <label>URL del sito:</label>
                 <input class="text-input" v-model="quickLinks.extra.url" @blur="updateQuickLink('extra')">
             </details>
 
