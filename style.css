@@ -185,6 +185,41 @@
     min-width: 0;
 }
 
+/* Icone social (Instagram / Facebook): riga a parte, centrata sotto i contatti */
+.landing-footer .social-links {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.social-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--home-card-bg, #eef5fc);
+    border: 1px solid #d3e3f4;
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.social-btn.social-ig { color: #e4405f; }
+.social-btn.social-fb { color: #1877f2; }
+
+.social-btn:hover {
+    background: #dfeaf7;
+    transform: translateY(-2px);
+}
+
+.social-btn:focus-visible {
+    outline: 3px solid rgba(74,144,226,0.6);
+    outline-offset: 2px;
+}
+
 /* ================================================= */
 /* LOGIN (pagina iniziale): una sola card sullo sfondo */
 /* ================================================= */

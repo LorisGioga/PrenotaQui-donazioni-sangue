@@ -149,6 +149,13 @@ createApp({
       website: ''
     });
 
+    // Social del Gruppo (icone nel footer dei contatti). Se nel database non c'è ancora nulla, valgono questi.
+    const SOCIAL_DEFAULT = {
+      instagram: 'https://www.instagram.com/fidas_san_giusto_can.se/',
+      facebook: 'https://www.facebook.com/profile.php?id=61575292618740'
+    };
+    const socialLinks = reactive({ ...SOCIAL_DEFAULT });
+
     // Privacy in overlay (testo mostrato in un pulsante/modale invece che inline)
     const showPrivacy = vueRef(false);
 
@@ -248,6 +255,7 @@ createApp({
       on('medicoEmail', s => { medicoEmail.value = s.val() || ''; });
       on('donationPlace', s => { donationPlace.value = s.val() || ''; });
       on('footerContacts', s => { replaceKeys(footerContacts, s.val() || { email:'', phone:'', whatsapp:'', address:'', website:'' }); });
+      on('socialLinks', s => { replaceKeys(socialLinks, s.exists() ? { instagram:'', facebook:'', ...s.val() } : SOCIAL_DEFAULT); });
       // Pulsanti News / Sospensioni / Extra in home
       on('quickLinks', s => {
         const data = s.val() || {};
@@ -861,6 +869,19 @@ createApp({
       }
     }
 
+    // Social: salva i due link (aggiunge https:// se manca)
+    async function updateSocialLink(key) {
+      let v = String(socialLinks[key] || '').trim();
+      if (v && !/^https?:\/\//i.test(v)) v = 'https://' + v;
+      socialLinks[key] = v;
+      try {
+        await set(ref(db, 'socialLinks'), { instagram: socialLinks.instagram || '', facebook: socialLinks.facebook || '' });
+      } catch (e) {
+        console.error("Errore updateSocialLink:", e);
+        await showAlert('Errore durante l\'aggiornamento dei link social');
+      }
+    }
+
     // Aggiorna uno dei 3 pulsanti di collegamento (news / sospensioni / extra)
     async function updateQuickLink(key) {
       try {
@@ -1055,7 +1076,7 @@ createApp({
       sessions, sessionsAccessibili, MAX_DATE, chooseDate, adminOpenBookings, menuDate,
       idoneiList, idoneiAllCount, fileInputIdonei, isRegistering,
       mioIdoneo, miaPrenotazione, giaPrenotato, nonIdoneo, bookingsLoaded, medicoEmail, donationPlace, footerContacts,
-      showPrivacy, quickLinks, updateQuickLink,
+      showPrivacy, quickLinks, updateQuickLink, socialLinks, updateSocialLink,
       isBooking, remaining, posNumber, slotPieno, slotMenuOpen, dateMenuOpen, slotScelta, toggleSlotMenu, toggleDateMenu, pickSlot, pickDate,
       mask, register, login, resetPassword, logout, enterPage, loadBookings, confirmBook, adminLogin, exitAdmin, 
       updatePageName, updateText, updateBlock, updateSeatsPerSlot, removeBooking, resetAll, exportExcel, 
